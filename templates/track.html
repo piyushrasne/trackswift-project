@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="animated-heading">Track Your Parcel</h2>
+<form method="POST" action="/track" class="track-form">
+    <input type="text" name="tracking_id" placeholder="Enter Tracking ID" required>
+    <button type="submit" class="animated-button">Track</button>
+</form>
+<a href="/" class="home-button animated-button">Home</a>
+
+{% if parcel %}
+<div class="result animated-result">
+    <h3>Parcel Details:</h3>
+    <p><strong>ID:</strong> {{ parcel.id }}</p>
+    <p><strong>Name:</strong> {{ parcel.name }}</p>
+    <p><strong>Status:</strong> {{ parcel.status }}</p>
+    <p><strong>Address:</strong> {{ parcel.address }}</p>
+    <p><strong>Price:</strong> {{ parcel.price }}</p>
+    <p><strong>Phone:</strong> {{ parcel.phone }}</p>
+    <p><strong>Email:</strong> {{ parcel.email }}</p>
+    <p><strong>Payment Type:</strong> {{ parcel.payment_type }}</p>
+    <p><strong>Region:</strong> {{ parcel.region }}</p>
+</div>
+
+<div class="result animated-request">
+    <h3>Request a Change</h3>
+    <form method="POST" action="/request_change">
+        <input type="hidden" name="id" value="{{ parcel.id }}">
+        <input type="text" name="new_address" placeholder="New Address">
+        <input type="text" name="new_phone" placeholder="New Phone Number">
+        <input type="text" name="new_region" placeholder="New Region">
+        <button type="submit" class="animated-button">Request Change</button>
+    </form>
+</div>
+{% elif not_found %}
+<p style="color:red;">No parcel found with that ID.</p>
+{% endif %}
+
+<style>
+.track-form {
+    text-align: center;
+    margin-bottom: 20px;
+}
+.home-button {
+    display: inline-block;
+    margin-left: 10px;
+}
+.animated-heading {
+    font-size: 2.5rem;
+    text-align: center;
+    animation: slideFadeIn 2s ease forwards;
+}
+.animated-result, .animated-request {
+    animation: fadeInUp 1s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+    animation-fill-mode: forwards;
+}
+.animated-result {
+    animation-delay: 0.5s;
+}
+.animated-request {
+    animation-delay: 1s;
+}
+@keyframes slideFadeIn {
+    0% { opacity: 0; transform: translateY(-50px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

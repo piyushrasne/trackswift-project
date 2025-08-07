@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Pending Change Requests</h2>
+{% if requests %}
+    {% for req in requests %}
+    <div class="result">
+        <p><strong>Parcel ID:</strong> {{ req.id }}</p>
+        {% if req.new_address %}<p><strong>New Address:</strong> {{ req.new_address }}</p>{% endif %}
+        {% if req.new_phone %}<p><strong>New Phone:</strong> {{ req.new_phone }}</p>{% endif %}
+        {% if req.new_region %}<p><strong>New Region:</strong> {{ req.new_region }}</p>{% endif %}
+        <form method="POST">
+            <input type="hidden" name="id" value="{{ req.id }}">
+            <button type="submit" name="action" value="approve" class="animated-button">Approve</button>
+            <button type="submit" name="action" value="reject" class="animated-button">Reject</button>
+        </form>
+    </div>
+    {% endfor %}
+{% else %}
+<p>No pending requests.</p>
+{% endif %}
+{% endblock %}
