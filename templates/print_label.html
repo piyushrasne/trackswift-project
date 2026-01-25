@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>TrackSwift Label - {{ parcel.id }}</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            border: 2px dashed #000;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .box {
+            border: 1px solid #000;
+            padding: 10px;
+            width: 48%;
+        }
+
+        .barcode {
+            text-align: center;
+            margin-top: 30px;
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.8em;
+        }
+
+        @media print {
+            body {
+                border: none;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="logo">TrackSwift 📦</div>
+        <div>Standard Delivery</div>
+    </div>
+
+    <div class="row">
+        <div class="box">
+            <strong>FROM:</strong><br>
+            {{ parcel.name }} <br>(Sender)<br>
+            {{ parcel.start_address }}<br>
+            Phone: {{ parcel.phone }}
+        </div>
+        <div class="box">
+            <strong>TO:</strong><br>
+            {{ parcel.address }}<br>
+            Region: {{ parcel.region }}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="box">
+            <strong>DETAILS:</strong><br>
+            ID: {{ parcel.id }}<br>
+            Status: {{ parcel.status|upper }}<br>
+            Date: {{ date }}
+        </div>
+        <div class="box">
+            <strong>PAYMENT:</strong><br>
+            {{ parcel.payment_type }}<br>
+            Price: {{ parcel.price }}
+        </div>
+    </div>
+
+    <div class="barcode">
+        <h1>{{ parcel.id }}</h1>
+        <p>* SCAN FOR DETAILS *</p>
+    </div>
+
+    <div class="footer">
+        Powered by TrackSwift | Created by Piyush Rasne
+    </div>
+
+    <button class="no-print" onclick="window.print()"
+        style="padding: 10px 20px; cursor: pointer; display: block; margin: 20px auto;">🖨️ PRINT LABEL</button>
+</body>
+
+</html>

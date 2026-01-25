@@ -1,72 +1,91 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2 class="animated-heading">Track Your Parcel</h2>
-<form method="POST" action="/track" class="track-form">
-    <input type="text" name="tracking_id" placeholder="Enter Tracking ID" required>
-    <button type="submit" class="animated-button">Track</button>
-</form>
-<a href="/" class="home-button animated-button">Home</a>
-
-{% if parcel %}
-<div class="result animated-result">
-    <h3>Parcel Details:</h3>
-    <p><strong>ID:</strong> {{ parcel.id }}</p>
-    <p><strong>Name:</strong> {{ parcel.name }}</p>
-    <p><strong>Status:</strong> {{ parcel.status }}</p>
-    <p><strong>Address:</strong> {{ parcel.address }}</p>
-    <p><strong>Price:</strong> {{ parcel.price }}</p>
-    <p><strong>Phone:</strong> {{ parcel.phone }}</p>
-    <p><strong>Email:</strong> {{ parcel.email }}</p>
-    <p><strong>Payment Type:</strong> {{ parcel.payment_type }}</p>
-    <p><strong>Region:</strong> {{ parcel.region }}</p>
-</div>
-
-<div class="result animated-request">
-    <h3>Request a Change</h3>
-    <form method="POST" action="/request_change">
-        <input type="hidden" name="id" value="{{ parcel.id }}">
-        <input type="text" name="new_address" placeholder="New Address">
-        <input type="text" name="new_phone" placeholder="New Phone Number">
-        <input type="text" name="new_region" placeholder="New Region">
-        <button type="submit" class="animated-button">Request Change</button>
+<div class="tracking-container">
+    <h2 class="animated-heading">📦 Track Your Parcel</h2>
+    <form method="POST" action="/track" class="search-bar animated-form">
+        <input type="text" name="tracking_id" placeholder="Enter Tracking ID (e.g. TRK12345)" required>
+        <button type="submit" class="search-btn">🔍 Track</button>
     </form>
-</div>
-{% elif not_found %}
-<p style="color:red;">No parcel found with that ID.</p>
-{% endif %}
 
-<style>
-.track-form {
-    text-align: center;
-    margin-bottom: 20px;
-}
-.home-button {
-    display: inline-block;
-    margin-left: 10px;
-}
-.animated-heading {
-    font-size: 2.5rem;
-    text-align: center;
-    animation: slideFadeIn 2s ease forwards;
-}
-.animated-result, .animated-request {
-    animation: fadeInUp 1s ease forwards;
-    opacity: 0;
-    transform: translateY(20px);
-    animation-fill-mode: forwards;
-}
-.animated-result {
-    animation-delay: 0.5s;
-}
-.animated-request {
-    animation-delay: 1s;
-}
-@keyframes slideFadeIn {
-    0% { opacity: 0; transform: translateY(-50px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInUp {
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
+    {% if parcel %}
+    <div class="parcel-dashboard">
+        <!-- Top Section: Status & Image -->
+        <div class="status-card glass-panel swing-in">
+            <div class="status-header">
+                <h3>{{ parcel.name }}</h3>
+                <span class="status-badge {{ parcel.status|lower|replace(' ', '-') }}">{{ parcel.status }}</span>
+            </div>
+
+            <div class="parcel-visuals">
+                <!-- Image Hidden for Privacy as per Request -->
+                <div class="parcel-placeholder secure-mode">
+                    <span>🔒 Verified Parcel</span>
+                    <small>(Image visible to Admin only)</small>
+                </div>
+
+                <div class="security-info">
+                    <p>🔒 <strong>Secure Handling:</strong> Verified by TrackSwift AI Security.</p>
+                </div>
+            </div>
+
+            <div class="route-info">
+                <div class="point start">
+                    <span class="dot"></span>
+                    <p class="label">From</p>
+                    <p class="addr">{{ parcel.start_address or 'Origin' }}</p>
+                </div>
+                <div class="line-connector">
+                    <div class="progress-line"></div>
+                    <i class="truck-icon">🚚</i>
+                </div>
+                <div class="point end">
+                    <span class="dot"></span>
+                    <p class="label">To</p>
+                    <p class="addr">{{ parcel.end_address or parcel.address }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div class="timeline-card glass-panel slide-up">
+            <h3>📍 Journey History</h3>
+            <ul class="timeline">
+                {% for event in parcel.tracking_history|reverse %}
+                <li class="timeline-item">
+                    <div class="timestamp">{{ event.timestamp }}</div>
+                    <div class="content">
+                        <h4>{{ event.status }}</h4>
+                        <p>{{ event.location }}</p>
+                    </div>
+                </li>
+                {% else %}
+                <li class="timeline-item">
+                    <div class="content">
+                        <h4>Tracking Initiated</h4>
+                        <p>Waiting for updates...</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Change Request Section -->
+        <div class="actions-card glass-panel fade-in">
+            <h3>⚙️ Options</h3>
+            <form method="POST" action="/request_change" class="change-form">
+                <input type="hidden" name="id" value="{{ parcel.id }}">
+                <div class="input-group">
+                    <input type="text" name="new_address" placeholder="Update Address">
+                    <input type="text" name="new_phone" placeholder="Update Phone">
+                </div>
+                <button type="submit" class="action-btn">Request Changes</button>
+            </form>
+        </div>
+    </div>
+    {% elif not_found %}
+    <div class="error-panel glass-panel shake">
+        <p>❌ No parcel found with that ID. Please check and try again.</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

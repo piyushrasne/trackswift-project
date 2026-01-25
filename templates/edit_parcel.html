@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel">
+    <h2>✏️ Edit Parcel: {{ parcel.id }}</h2>
+
+    <div class="split-view">
+        <div class="edit-form-section">
+            <form action="/edit_parcel/{{ parcel.id }}" method="POST">
+                <h3>Details</h3>
+                <div class="form-group">
+                    <label>Current Status</label>
+                    <select name="status">
+                        <option value="Pending Pickup" {% if parcel.status=='Pending Pickup' %}selected{% endif %}>
+                            Pending Pickup</option>
+                        <option value="In Transit" {% if parcel.status=='In Transit' %}selected{% endif %}>In Transit
+                        </option>
+                        <option value="Out for Delivery" {% if parcel.status=='Out for Delivery' %}selected{% endif %}>
+                            Out for Delivery</option>
+                        <option value="Delivered" {% if parcel.status=='Delivered' %}selected{% endif %}>Delivered
+                        </option>
+                        <option value="On Hold" {% if parcel.status=='On Hold' %}selected{% endif %}>On Hold</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Address</label>
+                    <input type="text" name="start_address" value="{{ parcel.start_address }}">
+                </div>
+
+                <div class="form-group">
+                    <label>End Address</label>
+                    <input type="text" name="end_address" value="{{ parcel.end_address }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Live Location</label>
+                    <input type="text" name="current_location" value="{{ parcel.current_location }}">
+                </div>
+
+                <h3>Update Tracking</h3>
+                <div class="form-group">
+                    <label>Add New Checkpoint</label>
+                    <input type="text" name="new_update_status" placeholder="e.g. Arrived at Hub A">
+                </div>
+
+                <button type="submit" class="animated-button">Save Changes</button>
+            </form>
+        </div>
+
+        <div class="preview-section">
+            {% if parcel.image %}
+            <h3>Parcel Image</h3>
+            <img src="{{ url_for('static', filename=parcel.image) }}" alt="Parcel Image" class="parcel-preview-img">
+            {% endif %}
+
+            <h3>History</h3>
+            <ul class="history-list-mini">
+                {% for event in parcel.tracking_history %}
+                <li>
+                    <span class="time">{{ event.timestamp }}</span>
+                    <span class="loc">{{ event.location }}</span>
+                    <span class="stat">{{ event.status }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

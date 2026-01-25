@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-panel">
+    <h2>🚀 Send a Parcel</h2>
+    <p>Fill in the details below to schedule a pickup.</p>
+
+    {% if success %}
+    <div class="success-message">
+        <h3>Parcel Registered Successfully!</h3>
+        <p>Your Tracking ID is: <strong>{{ tracking_id }}</strong></p>
+        <p>Please save this ID to track your parcel.</p>
+        <a href="/" class="animated-button">Back to Home</a>
+    </div>
+    {% else %}
+    <form action="/create_parcel" method="POST" enctype="multipart/form-data" class="parcel-form">
+        <div class="form-group">
+            <label>Sender Name</label>
+            <input type="text" name="name" required placeholder="Piyush Rasne">
+        </div>
+
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" required placeholder="+91 96572 65104">
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="piyushrasne@gmail.com">
+        </div>
+
+        <div class="form-group">
+            <label>Pickup Address (From)</label>
+            <input type="text" name="start_address" required placeholder="Sadbazarpeth, Junnar, Maharashtra">
+        </div>
+
+        <div class="form-group">
+            <label>Delivery Address (To)</label>
+            <input type="text" name="address" required placeholder="456 End Rd, City">
+        </div>
+
+        <div class="form-group">
+            <label>Region</label>
+            <select name="region">
+                <option value="Domestic">Domestic</option>
+                <option value="International">International</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Parcel Image</label>
+            <div class="file-upload-wrapper">
+                <input type="file" name="image" id="file-input" class="file-input">
+                <label for="file-input" class="file-label">
+                    <span class="upload-icon">📷</span> Choose Image
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="animated-button">Schedule Pickup</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

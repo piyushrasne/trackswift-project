@@ -1,20 +1,34 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-import json, os
+import json, os, datetime
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'trackswift_secret'
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
 
 # Paths to JSON data files
-PARCEL_FILE = 'data/parcels.json'
-CHANGE_REQUESTS_FILE = 'data/change_requests.json'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+PARCEL_FILE = os.path.join(DATA_DIR, 'parcels.json')
+CHANGE_REQUESTS_FILE = os.path.join(DATA_DIR, 'change_requests.json')
 
 # Utility functions to load/save parcels
 def load_parcels():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
     if not os.path.exists(PARCEL_FILE):
         with open(PARCEL_FILE, 'w') as f:
             json.dump([], f)
     with open(PARCEL_FILE, 'r') as f:
-        return json.load(f)
+        data = json.load(f)
+        # Migration: Ensure all parcels have new fields
+        for p in data:
+            if 'image' not in p: p['image'] = ''
+            if 'start_address' not in p: p['start_address'] = ''
+            if 'end_address' not in p: p['end_address'] = p.get('address', '')
+            if 'tracking_history' not in p: p['tracking_history'] = []
+            if 'current_location' not in p: p['current_location'] = p.get('address', '')
+        return data
 
 def save_parcels(parcels):
     with open(PARCEL_FILE, 'w') as f:
@@ -22,6 +36,8 @@ def save_parcels(parcels):
 
 # Utility functions to load/save change requests
 def load_change_requests():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
     if not os.path.exists(CHANGE_REQUESTS_FILE):
         with open(CHANGE_REQUESTS_FILE, 'w') as f:
             json.dump([], f)
@@ -36,6 +52,14 @@ def save_change_requests(requests):
 @app.route('/')
 def home():
     return render_template('home.html')
+
+@app.route('/feedback', methods=['POST'])
+def feedback():
+    email = request.form.get('email')
+    message = request.form.get('message')
+    # In a real app, save this or send email. For now, just flash.
+    flash('Thank you for your feedback!')
+    return redirect('/')
 
 @app.route('/track', methods=['GET', 'POST'])
 def track():
@@ -84,19 +108,58 @@ def add_parcel():
     if not session.get('admin'):
         return redirect('/login')
     new_parcel = {
-        'id': request.form['id'],
+        'id': request.form['id'] or ('TRK' + str(datetime.datetime.now().timestamp()).replace('.', '')[-5:]),
         'name': request.form['name'],
         'status': request.form['status'],
         'address': request.form['address'],
+        'start_address': request.form.get('start_address', ''),
+        'end_address': request.form.get('end_address', ''),
         'price': request.form['price'],
         'phone': request.form['phone'],
         'email': request.form['email'],
         'payment_type': request.form['payment_type'],
-        'region': request.form['region']
+        'region': request.form['region'],
+        'image': '',
+        'tracking_history': [],
+        'current_location': request.form.get('start_address', '') # Default to start
     }
+    
+    if 'image' in request.files:
+        file = request.files['image']
+        if file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            new_parcel['image'] = 'uploads/' + filename
     parcels = load_parcels()
     parcels.append(new_parcel)
     save_parcels(parcels)
+    return redirect('/dashboard')
+
+    return redirect('/dashboard')
+
+@app.route('/approve_parcel/<id>')
+def approve_parcel(id):
+    if not session.get('admin'):
+        return redirect('/login')
+    parcels = load_parcels()
+    for p in parcels:
+        if p['id'] == id:
+            p['status'] = 'Pending Pickup'
+            # Add initial history event
+            if not p['tracking_history']:
+                p['tracking_history'].append({'status': 'Request Approved', 'location': 'Admin Center', 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
+    save_parcels(parcels)
+    flash('Parcel Request Approved!')
+    return redirect('/dashboard')
+
+@app.route('/reject_parcel/<id>')
+def reject_parcel(id):
+    if not session.get('admin'):
+        return redirect('/login')
+    parcels = load_parcels()
+    parcels = [p for p in parcels if p['id'] != id]
+    save_parcels(parcels)
+    flash('Parcel Request Rejected.')
     return redirect('/dashboard')
 
 @app.route('/delete_parcel', methods=['POST'])
@@ -108,6 +171,77 @@ def delete_parcel():
     parcels = [parcel for parcel in parcels if parcel['id'] != parcel_id]
     save_parcels(parcels)
     return redirect('/dashboard')
+
+@app.route('/create_parcel', methods=['GET', 'POST'])
+def create_parcel():
+    if request.method == 'POST':
+        # Auto-generate ID or let user pick? User prompt implies they fill info.
+        # Let's generate a simple ID based on timestamp
+        import random
+        parcel_id = 'TRK' + str(random.randint(10000, 99999))
+        
+        new_parcel = {
+            'id': parcel_id,
+            'name': request.form['name'],
+            'status': 'Pending Approval',
+            'address': request.form['address'], # Delivery Address
+            'start_address': request.form['start_address'],
+            'end_address': request.form['address'],
+            'price': 'Calculate...', # Placeholder
+            'phone': request.form['phone'],
+            'email': request.form['email'],
+            'payment_type': 'TBD',
+            'region': request.form.get('region', 'India'),
+            'image': '',
+            'tracking_history': [{'status': 'Order Placed', 'location': 'Online', 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}],
+            'current_location': 'Sender Location'
+        }
+
+        if 'image' in request.files:
+            file = request.files['image']
+            if file.filename != '':
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                new_parcel['image'] = 'uploads/' + filename
+        
+        parcels = load_parcels()
+        parcels.append(new_parcel)
+        save_parcels(parcels)
+        return render_template('create_parcel.html', success=True, tracking_id=parcel_id)
+    return render_template('create_parcel.html')
+
+@app.route('/edit_parcel/<id>', methods=['GET', 'POST'])
+def edit_parcel(id):
+    if not session.get('admin'):
+        return redirect('/login')
+    
+    parcels = load_parcels()
+    parcel = next((p for p in parcels if p['id'] == id), None)
+    
+    if not parcel:
+        return "Parcel not found", 404
+
+    if request.method == 'POST':
+        # Update fields
+        parcel['status'] = request.form['status']
+        parcel['current_location'] = request.form['current_location']
+        parcel['start_address'] = request.form['start_address']
+        parcel['end_address'] = request.form['end_address']
+        
+        # Add new tracking update if provided
+        new_update = request.form.get('new_update_status')
+        if new_update:
+            parcel['tracking_history'].append({
+                'status': new_update,
+                'location': parcel['current_location'],
+                'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            })
+            
+        save_parcels(parcels)
+        flash('Parcel Updated Successfully')
+        return redirect(url_for('edit_parcel', id=id))
+        
+    return render_template('edit_parcel.html', parcel=parcel)
 
 @app.route('/handle_requests', methods=['GET', 'POST'])
 def handle_requests():
@@ -136,6 +270,16 @@ def handle_requests():
         save_change_requests(requests)
         return redirect('/handle_requests')
     return render_template('handle_requests.html', requests=requests)
+
+@app.route('/print_label/<id>')
+def print_label(id):
+    if not session.get('admin'):
+        return redirect('/login')
+    parcels = load_parcels()
+    parcel = next((p for p in parcels if p['id'] == id), None)
+    if not parcel:
+        return "Parcel not found", 404
+    return render_template('print_label.html', parcel=parcel, date=datetime.datetime.now().strftime("%Y-%m-%d"))
 
 @app.route('/logout')
 def logout():

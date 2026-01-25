@@ -1,32 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>TrackSwift</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8">
+  <title>TrackSwift</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
-    <div class="navbar">
-        <h1>📦 TrackSwift</h1>
-        {% if session.get('admin') %}
-            <a href="/dashboard">Dashboard</a>
-            <a href="/logout">Logout</a>
-        {% else %}
-            <a href="/">Track Parcel</a>
-            <a href="/login">Admin Login</a>
-        {% endif %}
+  <div class="navbar">
+    <h1>📦 TrackSwift</h1>
+    {% if session.get('admin') %}
+    <a href="/dashboard">Dashboard</a>
+    <a href="/logout">Logout</a>
+    {% else %}
+    <a href="/">Track Parcel</a>
+    <a href="/login">Admin Login</a>
+    {% endif %}
+  </div>
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+
+    <!-- Floating Back Button -->
+    <button onclick="history.back()" class="floating-back-btn" title="Go Back">⬅️</button>
+
+    <!-- Branding Widget -->
+    <div class="branding-widget" id="brandingWidget">
+      <div class="branding-content">
+        <span class="close-brand" onclick="hideBrand()" title="Hide for 10s">×</span>
+        <p>Created by <span class="brand-name">Piyush Rasne</span></p>
+        <div class="brand-links">
+          <a href="https://www.instagram.com/_piyush_rasne_?igsh=MWZwMjAwajByOXU2aw==" target="_blank"
+            class="brand-icon insta">📸 Instagram</a>
+          <a href="https://piyushrasne.great-site.net" target="_blank" class="brand-icon portfolio">🌐 Portfolio</a>
+        </div>
+      </div>
     </div>
-    <div class="container">
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-            <ul class="flashes">
-              {% for message in messages %}
-                <li>{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </div>
+
+    <script>
+      function hideBrand() {
+        var widget = document.getElementById('brandingWidget');
+        widget.style.display = 'none';
+        setTimeout(function () {
+          widget.style.display = 'block';
+        }, 10000); // 10 seconds
+      }
+    </script>
+  </div>
 </body>
+
 </html>

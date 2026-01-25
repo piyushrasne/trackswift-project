@@ -1,116 +1,166 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Admin Dashboard</h2>
-<a href="/handle_requests" style="float:right; color:white; text-decoration:none;">
-    <span style="font-size:24px;">🔔</span>
-    {% if requests_count > 0 %}<span>({{ requests_count }})</span>{% endif %}
-</a>
+<div class="glass-panel">
+    <div class="dashboard-header">
+        <h2 class="animated-heading">Admin Dashboard</h2>
+        <a href="/handle_requests" class="notification-badge animated-button">
+            🔔 Requests {% if requests_count > 0 %}<span class="count">{{ requests_count }}</span>{% endif %}
+        </a>
+    </div>
 
-<form method="POST" action="/add_parcel">
-    <input type="text" name="id" placeholder="Parcel ID" required>
-    <input type="text" name="name" placeholder="Receiver Name" required>
-    <input type="text" name="status" placeholder="Status" required>
-    <input type="text" name="address" placeholder="Delivery Address" required>
-    <input type="text" name="price" placeholder="Price" required>
-    <input type="text" name="phone" placeholder="Phone Number" required>
-    <input type="email" name="email" placeholder="Email ID" required>
-    <select name="payment_type" required>
-        <option value="Prepaid">Prepaid</option>
-        <option value="Postpaid">Postpaid</option>
-    </select>
-    <input type="text" name="region" placeholder="Region" required>
-    <button type="submit" class="animated-button">Add Parcel</button>
-</form>
+    <!-- Add Parcel Section -->
+    <div class="accordion-section">
+        <h3 class="accordion-toggle">➕ Add New Parcel</h3>
+        <div class="accordion-content">
+            <form method="POST" action="/add_parcel" enctype="multipart/form-data" class="grid-form">
+                <input type="text" name="id" placeholder="Parcel ID (Auto if empty)" value="">
+                <input type="text" name="name" placeholder="Receiver Name" required>
+                <select name="status" required>
+                    <option value="Pending Pickup">Pending Pickup</option>
+                    <option value="In Transit">In Transit</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                </select>
+                <input type="text" name="start_address" placeholder="Start Address" required>
+                <input type="text" name="address" placeholder="End Address" required>
+                <input type="text" name="price" placeholder="Price" required>
+                <input type="text" name="phone" placeholder="Receiver Phone" required>
+                <input type="email" name="email" placeholder="Receiver Email" required>
+                <select name="payment_type" required>
+                    <option value="Prepaid">Prepaid</option>
+                    <option value="Postpaid">Postpaid</option>
+                </select>
+                <input type="text" name="region" placeholder="Region" required>
+                <div class="file-input-group">
+                    <label>Parcel Image:</label>
+                    <input type="file" name="image">
+                </div>
+                <button type="submit" class="animated-button primary-btn">Add Parcel</button>
+            </form>
+        </div>
+    </div>
 
-<div class="filters">
-    <input type="text" id="searchInput" placeholder="Search Parcel..." onkeyup="filterTable()">
-    <select id="statusFilter" onchange="filterTable()">
-        <option value="">All Status</option>
-        <option value="pending">Pending</option>
-        <option value="shipped">Shipped</option>
-        <option value="delivered">Delivered</option>
-        <option value="in way">In Way</option>
-        <option value="shipping soon">Shipping Soon</option>
-    </select>
-    <select id="regionFilter" onchange="filterTable()">
-        <option value="">All Regions</option>
-        <option value="pune">Pune</option>
-        <option value="mumbai">Mumbai</option>
-        <option value="delhi">Delhi</option>
-        <option value="junnar">Junnar</option>
-    </select>
-    <select id="paymentFilter" onchange="filterTable()">
-        <option value="">All Payments</option>
-        <option value="Prepaid">Prepaid</option>
-        <option value="Postpaid">Postpaid</option>
-    </select>
+    <!-- Incoming Requests Section -->
+    <div class="incoming-requests">
+        <h3>📩 Incoming Parcel Requests</h3>
+        <div class="requests-grid">
+            {% for parcel in parcels %}
+            {% if parcel.status == 'Pending Approval' %}
+            <div class="request-card glass-panel">
+                <div class="req-header">
+                    <h4>{{ parcel.name }}</h4>
+                    <span class="req-id">{{ parcel.id }}</span>
+                </div>
+                <div class="req-details">
+                    <p><strong>From:</strong> {{ parcel.start_address }}</p>
+                    <p><strong>To:</strong> {{ parcel.address }}</p>
+                    <p><strong>Phone:</strong> {{ parcel.phone }}</p>
+                </div>
+                {% if parcel.image %}
+                <img src="{{ url_for('static', filename=parcel.image) }}" class="req-img-preview">
+                {% endif %}
+                <div class="req-actions">
+                    <a href="/approve_parcel/{{ parcel.id }}" class="action-btn approve">✅ Approve</a>
+                    <a href="/reject_parcel/{{ parcel.id }}" class="action-btn reject">❌ Reject</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="filters glass-panel-light">
+        <input type="text" id="searchInput" placeholder="Search Parcel by ID or Name..." onkeyup="filterTable()">
+        <select id="statusFilter" onchange="filterTable()">
+            <option value="">All Status</option>
+            <option value="PENDING PICKUP">Pending Pickup</option>
+            <option value="IN TRANSIT">In Transit</option>
+            <option value="DELIVERED">Delivered</option>
+        </select>
+    </div>
+
+    <h3>📦 Active Shipments</h3>
+    <div class="table-container">
+        <table id="parcelTable" class="glass-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Current Loc</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Region</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for parcel in parcels %}
+                {% if parcel.status != 'Pending Approval' %}
+                <tr>
+                    <td>{{ parcel.id }}</td>
+                    <td>
+                        {% if parcel.image %}
+                        <a href="{{ url_for('static', filename=parcel.image) }}" target="_blank"
+                            title="View Image">📸</a>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ parcel.name }}</td>
+                    <td><span class="status-pill {{ parcel.status|lower|replace(' ','-') }}">{{ parcel.status }}</span>
+                    </td>
+                    <td>{{ parcel.current_location }}</td>
+                    <td>{{ parcel.start_address }}</td>
+                    <td>{{ parcel.address }}</td>
+                    <td>{{ parcel.region }}</td>
+                    <td>
+                        <a href="/edit_parcel/{{ parcel.id }}" class="action-btn edit" title="Edit">✏️</a>
+                        <a href="/print_label/{{ parcel.id }}" class="action-btn print" target="_blank"
+                            title="Print Label">🖨️</a>
+                        <form method="POST" action="/delete_parcel" style="display:inline;"
+                            onsubmit="return confirm('Are you sure?');">
+                            <input type="hidden" name="id" value="{{ parcel.id }}">
+                            <button type="submit" class="action-btn delete" title="Delete">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<h3>All Parcels</h3>
-<table id="parcelTable">
-    <tr><th>ID</th><th>Name</th><th>Status</th><th>Address</th><th>Price</th><th>Phone</th><th>Email</th><th>Payment</th><th>Region</th><th>Action</th></tr>
-    {% for parcel in parcels %}
-    <tr>
-        <td>{{ parcel.id }}</td>
-        <td>{{ parcel.name }}</td>
-        <td>{{ parcel.status }}</td>
-        <td>{{ parcel.address }}</td>
-        <td>{{ parcel.price }}</td>
-        <td>{{ parcel.phone }}</td>
-        <td>{{ parcel.email }}</td>
-        <td>{{ parcel.payment_type }}</td>
-        <td>{{ parcel.region }}</td>
-        <td>
-            <form method="POST" action="/delete_parcel" style="display:inline;">
-                <input type="hidden" name="id" value="{{ parcel.id }}">
-                <button type="submit" class="animated-button">Delete</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-
 <script>
-function filterTable() {
-    var searchInput = document.getElementById("searchInput").value.toUpperCase();
-    var statusFilter = document.getElementById("statusFilter").value.toUpperCase();
-    var regionFilter = document.getElementById("regionFilter").value.toUpperCase();
-    var paymentFilter = document.getElementById("paymentFilter").value.toUpperCase();
+    function filterTable() {
+        var searchInput = document.getElementById("searchInput").value.toUpperCase();
+        var statusFilter = document.getElementById("statusFilter").value.toUpperCase();
 
-    var table = document.getElementById("parcelTable");
-    var tr = table.getElementsByTagName("tr");
+        var table = document.getElementById("parcelTable");
+        var tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
 
-    for (var i = 1; i < tr.length; i++) {
-        var td = tr[i].getElementsByTagName("td");
-        var show = true;
+        for (var i = 0; i < tr.length; i++) {
+            var tdId = tr[i].getElementsByTagName("td")[0];
+            var tdName = tr[i].getElementsByTagName("td")[1];
+            var tdStatus = tr[i].getElementsByTagName("td")[2];
 
-        var idNameMatch = td[0].textContent.toUpperCase().includes(searchInput) ||
-                          td[1].textContent.toUpperCase().includes(searchInput);
+            if (tdId && tdName) {
+                var txtValueId = tdId.textContent || tdId.innerText;
+                var txtValueName = tdName.textContent || tdName.innerText;
+                var txtValueStatus = tdStatus.textContent || tdStatus.innerText;
 
-        var statusMatch = statusFilter === "" || td[2].textContent.toUpperCase() === statusFilter;
-        var regionMatch = regionFilter === "" || td[8].textContent.toUpperCase() === regionFilter;
-        var paymentMatch = paymentFilter === "" || td[7].textContent.toUpperCase() === paymentFilter;
+                var matchesSearch = txtValueId.toUpperCase().indexOf(searchInput) > -1 || txtValueName.toUpperCase().indexOf(searchInput) > -1;
+                var matchesStatus = statusFilter === "" || txtValueStatus.toUpperCase().indexOf(statusFilter) > -1;
 
-        if (!(idNameMatch && statusMatch && regionMatch && paymentMatch)) {
-            show = false;
+                if (matchesSearch && matchesStatus) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
         }
-
-        tr[i].style.display = show ? "" : "none";
     }
-}
 </script>
-
-<style>
-.filters {
-    margin: 20px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-.filters select, .filters input {
-    padding: 10px;
-    border-radius: 6px;
-    border: none;
-}
-</style>
 {% endblock %}
