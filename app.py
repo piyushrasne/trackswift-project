@@ -202,7 +202,7 @@ def create_parcel():
         
         new_parcel = {
             'id': parcel_id,
-            'name': request.form['name'],
+            'name': request.form['sender_name'],
             'status': 'Pending Approval',
             'address': request.form['address'], # Delivery Address
             'start_address': request.form['start_address'],
