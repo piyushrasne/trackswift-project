@@ -1,3 +1,4 @@
+<!-- Parcel Editing Page Developed by Me -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -7,6 +8,7 @@
     <div class="split-view">
         <div class="edit-form-section">
             <form action="/edit_parcel/{{ parcel.id }}" method="POST">
+                <!-- Parcel Details Update -->
                 <h3>Details</h3>
                 <div class="form-group">
                     <label>Current Status</label>
@@ -38,6 +40,7 @@
                     <input type="text" name="current_location" value="{{ parcel.current_location }}">
                 </div>
 
+                <!-- History Update Section -->
                 <h3>Update Tracking</h3>
                 <div class="form-group">
                     <label>New Status Header</label>
@@ -74,6 +77,7 @@
             </form>
         </div>
 
+        <!-- Preview Section -->
         <div class="preview-section">
             {% if parcel.image %}
             <h3>Parcel Image</h3>

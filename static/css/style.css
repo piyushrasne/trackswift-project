@@ -1,3 +1,5 @@
+/* Stylesheet Developed by Me */
+
 :root {
     --bg-color: #0f0c29;
     --bg-gradient: linear-gradient(315deg, #0f0c29 0%, #302b63 74%, #24243e 100%);
@@ -20,7 +22,7 @@ body {
     min-height: 100vh;
 }
 
-/* Navbar */
+/* --- Navigation Styles --- */
 .navbar {
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(10px);
@@ -55,14 +57,13 @@ body {
     color: var(--primary);
 }
 
-/* Layout */
+/* --- Layout Components --- */
 .container {
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Glass Panel */
 .glass-panel,
 .glass-panel-light,
 .glass-table {
@@ -74,27 +75,25 @@ body {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     margin-bottom: 2rem;
     overflow-x: auto;
-    /* Allow scroll if table is wide */
 }
 
-/* Better Table Styles */
+/* Table Design */
 th,
 td {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     white-space: nowrap;
-    /* Prevent wrapping mixing up rows */
 }
 
-/* Headings */
+/* Typography */
 h2,
 h3 {
     margin-top: 0;
     color: var(--text-main);
 }
 
-/* Forms & Inputs */
+/* Form Elements */
 input,
 select,
 textarea {
@@ -116,7 +115,7 @@ textarea:focus {
     border-color: var(--primary);
 }
 
-/* Buttons */
+/* Interactive Buttons */
 .animated-button,
 .cta-btn,
 .search-btn,
@@ -153,7 +152,7 @@ textarea:focus {
     padding: 8px 12px;
 }
 
-/* Home Page */
+/* --- Page Specific: Home --- */
 .hero-section {
     display: flex;
     align-items: center;
@@ -203,7 +202,7 @@ textarea:focus {
     margin-bottom: 1rem;
 }
 
-/* Tracking Page */
+/* --- Page Specific: Tracking & Status --- */
 .status-card {
     position: relative;
     overflow: hidden;
@@ -277,7 +276,6 @@ textarea:focus {
     left: 0;
     height: 100%;
     width: 60%;
-    /* Dynamic based on status in real app */
     background: var(--primary);
     animation: growLine 2s ease-out forwards;
 }
@@ -286,11 +284,9 @@ textarea:focus {
     position: absolute;
     top: -15px;
     left: 60%;
-    /* Matches width */
     font-style: normal;
     font-size: 1.5rem;
     transform: scaleX(-1) translateX(50%);
-    /* Flip truck to face right */
     animation: moveTruck 2s ease-out forwards;
 }
 
@@ -314,7 +310,7 @@ textarea:focus {
     }
 }
 
-/* Timeline */
+/* Timeline Styles */
 .timeline {
     list-style: none;
     padding: 0;
@@ -344,7 +340,7 @@ textarea:focus {
     color: var(--text-muted);
 }
 
-/* Chat Widget */
+/* --- Chat Support Widget --- */
 .ai-chat-widget {
     position: fixed;
     bottom: 30px;
@@ -409,7 +405,6 @@ textarea:focus {
     background: var(--primary);
     color: black;
     margin-left: auto;
-    /* Align right */
 }
 
 .chat-input input {
@@ -419,7 +414,7 @@ textarea:focus {
     margin: 0;
 }
 
-/* Animations */
+/* --- Animation Keyframes --- */
 @keyframes float {
 
     0%,
@@ -498,14 +493,13 @@ textarea:focus {
     animation-delay: 0.6s;
 }
 
-/* Branding Widget */
+/* --- Branding Components --- */
 .branding-widget {
     position: fixed;
     bottom: 20px;
     left: 20px;
     z-index: 1000;
     pointer-events: none;
-    /* Let clicks pass through if not on link */
 }
 
 .branding-content {
@@ -517,6 +511,7 @@ textarea:focus {
     pointer-events: auto;
     animation: slideInCorner 1s ease-out;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
 }
 
 .brand-name {
@@ -567,7 +562,7 @@ textarea:focus {
     }
 }
 
-/* Incoming Requests Dashboard */
+/* --- Dashboard Specifics --- */
 .incoming-requests {
     margin-bottom: 30px;
 }
@@ -582,7 +577,6 @@ textarea:focus {
 .request-card {
     background: rgba(255, 255, 255, 0.05);
     border-left: 4px solid #f1c40f;
-    /* Yellow for pending */
 }
 
 .req-header {
@@ -631,18 +625,13 @@ textarea:focus {
     flex: 1;
 }
 
-/* Secure Mode Placeholder */
+/* Secure Mode Display */
 .parcel-placeholder.secure-mode {
     border: 2px dashed var(--primary);
     background: rgba(0, 255, 136, 0.1);
 }
 
-/* Branding Close Button */
-.branding-content {
-    position: relative;
-    /* For absolute positioning of close btn */
-}
-
+/* Branding & UI Controls */
 .close-brand {
     position: absolute;
     top: -8px;
@@ -667,7 +656,7 @@ textarea:focus {
     background: #ff3333;
 }
 
-/* Floating Back Button */
+/* Navigation: Floating Back Button */
 .floating-back-btn {
     position: fixed;
     top: 90px;
@@ -693,7 +682,7 @@ textarea:focus {
     box-shadow: 0 6px 20px rgba(0, 255, 136, 0.6);
 }
 
-/* Success Message */
+/* Alerts and Messages */
 .success-message {
     text-align: center;
     background: rgba(46, 204, 113, 0.2);
@@ -718,7 +707,7 @@ textarea:focus {
     font-family: monospace;
 }
 
-/* Vertical Timeline */
+/* History Timeline Vertical */
 .timeline-vertical {
     list-style: none;
     padding: 0;

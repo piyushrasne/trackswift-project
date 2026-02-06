@@ -1,22 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-import json, os, datetime
+# Project main files are here i import flask and other required modules 
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+import json, os, datetime, re, random
 from werkzeug.utils import secure_filename
 
+# Initialize the application
 app = Flask(__name__)
 app.secret_key = 'trackswift_secret'
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 
-# Ensure upload directory exists
+# Check if upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Paths to JSON data files
+# Data file paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 PARCEL_FILE = os.path.join(DATA_DIR, 'parcels.json')
 CHANGE_REQUESTS_FILE = os.path.join(DATA_DIR, 'change_requests.json')
 
-# Utility functions to load/save parcels
+# Helper function to get parcel data
 def load_parcels():
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
@@ -25,7 +27,7 @@ def load_parcels():
             json.dump([], f)
     with open(PARCEL_FILE, 'r') as f:
         data = json.load(f)
-        # Migration: Ensure all parcels have new fields
+        # Ensure data consistency
         for p in data:
             if 'image' not in p: p['image'] = ''
             if 'start_address' not in p: p['start_address'] = ''
@@ -34,11 +36,12 @@ def load_parcels():
             if 'current_location' not in p: p['current_location'] = p.get('address', '')
         return data
 
+# Helper function to save parcel data
 def save_parcels(parcels):
     with open(PARCEL_FILE, 'w') as f:
         json.dump(parcels, f, indent=4)
 
-# Utility functions to load/save change requests
+# Helper function to get change requests
 def load_change_requests():
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
@@ -48,23 +51,27 @@ def load_change_requests():
     with open(CHANGE_REQUESTS_FILE, 'r') as f:
         return json.load(f)
 
+# Helper function to save change requests
 def save_change_requests(requests):
     with open(CHANGE_REQUESTS_FILE, 'w') as f:
         json.dump(requests, f, indent=4)
 
-# Routes
+# --- Application Routes ---
+
+# Home Page
 @app.route('/')
 def home():
     return render_template('home.html')
 
+# Handle User Feedback
 @app.route('/feedback', methods=['POST'])
 def feedback():
     email = request.form.get('email')
     message = request.form.get('message')
-    # In a real app, save this or send email. For now, just flash.
     flash('Thank you for your feedback!')
     return redirect('/')
 
+# Tracking Page
 @app.route('/track', methods=['GET', 'POST'])
 def track():
     if request.method == 'POST':
@@ -73,13 +80,13 @@ def track():
         
         found_parcel = None
         
-        # Priority 1: Exact ID Match (Case Insensitive)
+        # Search by ID first
         for parcel in parcels:
             if parcel['id'].lower() == query:
                 found_parcel = parcel
                 break
         
-        # Priority 2: Partial Name Match (Case Insensitive)
+        # Search by Name if not found
         if not found_parcel:
             for parcel in parcels:
                 if query in parcel['name'].lower():
@@ -92,6 +99,7 @@ def track():
         return render_template('track.html', not_found=True)
     return render_template('track.html')
 
+# Handle Address Change Requests
 @app.route('/request_change', methods=['POST'])
 def request_change():
     request_data = {
@@ -106,6 +114,7 @@ def request_change():
     flash('Change Request Sent to Admin.')
     return redirect('/track')
 
+# Admin Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -115,6 +124,7 @@ def login():
         flash('Invalid credentials')
     return render_template('login.html')
 
+# Admin Dashboard
 @app.route('/dashboard')
 def dashboard():
     if not session.get('admin'):
@@ -123,6 +133,7 @@ def dashboard():
     requests_count = len(load_change_requests())
     return render_template('dashboard.html', parcels=parcels, requests_count=requests_count)
 
+# Add New Parcel Logic
 @app.route('/add_parcel', methods=['POST'])
 def add_parcel():
     if not session.get('admin'):
@@ -141,7 +152,7 @@ def add_parcel():
         'region': request.form['region'],
         'image': '',
         'tracking_history': [],
-        'current_location': request.form.get('start_address', '') # Default to start
+        'current_location': request.form.get('start_address', '')
     }
     
     if 'image' in request.files:
@@ -155,8 +166,7 @@ def add_parcel():
     save_parcels(parcels)
     return redirect('/dashboard')
 
-    return redirect('/dashboard')
-
+# Approve Parcel Request
 @app.route('/approve_parcel/<id>')
 def approve_parcel(id):
     if not session.get('admin'):
@@ -165,13 +175,13 @@ def approve_parcel(id):
     for p in parcels:
         if p['id'] == id:
             p['status'] = 'Pending Pickup'
-            # Add initial history event
             if not p['tracking_history']:
                 p['tracking_history'].append({'status': 'Request Approved', 'location': 'Admin Center', 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")})
     save_parcels(parcels)
     flash('Parcel Request Approved!')
     return redirect('/dashboard')
 
+# Reject Parcel Request
 @app.route('/reject_parcel/<id>')
 def reject_parcel(id):
     if not session.get('admin'):
@@ -182,6 +192,7 @@ def reject_parcel(id):
     flash('Parcel Request Rejected.')
     return redirect('/dashboard')
 
+# Delete Parcel
 @app.route('/delete_parcel', methods=['POST'])
 def delete_parcel():
     if not session.get('admin'):
@@ -192,22 +203,21 @@ def delete_parcel():
     save_parcels(parcels)
     return redirect('/dashboard')
 
+# Create Parcel Page
 @app.route('/create_parcel', methods=['GET', 'POST'])
 def create_parcel():
     if request.method == 'POST':
-        # Auto-generate ID or let user pick? User prompt implies they fill info.
-        # Let's generate a simple ID based on timestamp
-        import random
+        # Generate random ID
         parcel_id = 'TRK' + str(random.randint(10000, 99999))
         
         new_parcel = {
             'id': parcel_id,
             'name': request.form['sender_name'],
             'status': 'Pending Approval',
-            'address': request.form['address'], # Delivery Address
+            'address': request.form['address'],
             'start_address': request.form['start_address'],
             'end_address': request.form['address'],
-            'price': 'Calculate...', # Placeholder
+            'price': 'Calculate...',
             'phone': request.form['phone'],
             'email': request.form['email'],
             'payment_type': 'TBD',
@@ -230,6 +240,7 @@ def create_parcel():
         return render_template('create_parcel.html', success=True, tracking_id=parcel_id)
     return render_template('create_parcel.html')
 
+# Edit Parcel Details
 @app.route('/edit_parcel/<id>', methods=['GET', 'POST'])
 def edit_parcel(id):
     if not session.get('admin'):
@@ -242,25 +253,22 @@ def edit_parcel(id):
         return "Parcel not found", 404
 
     if request.method == 'POST':
-        # Update fields
         parcel['status'] = request.form['status']
         parcel['current_location'] = request.form['current_location']
         parcel['start_address'] = request.form['start_address']
         parcel['end_address'] = request.form['end_address']
         
-        # Add new tracking update if provided
+        # Add tracking history
         new_status_header = request.form.get('new_status_header')
         if new_status_header:
             new_desc = request.form.get('new_description', '')
-            new_date = request.form.get('new_date') # Format: YYYY-MM-DD
-            new_time = request.form.get('new_time') # Format: HH:MM
+            new_date = request.form.get('new_date')
+            new_time = request.form.get('new_time')
             
-            # Format timestamp nicely: "Fri, 30th Jan '26 - 6:28pm"
-            # For simplicity, we'll try to parse and reformat, or fallback to input
+            # Format date and time
             formatted_ts = f"{new_date} {new_time}"
             try:
                 dt_obj = datetime.datetime.strptime(f"{new_date} {new_time}", "%Y-%m-%d %H:%M")
-                 # Custom formatting
                 day = dt_obj.day
                 suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
                 formatted_ts = dt_obj.strftime(f"%a, {day}{suffix} %b '%y - %I:%M%p").lower()
@@ -281,6 +289,7 @@ def edit_parcel(id):
         
     return render_template('edit_parcel.html', parcel=parcel)
 
+# Handle Admin Requests
 @app.route('/handle_requests', methods=['GET', 'POST'])
 def handle_requests():
     if not session.get('admin'):
@@ -309,6 +318,7 @@ def handle_requests():
         return redirect('/handle_requests')
     return render_template('handle_requests.html', requests=requests, parcels=parcels)
 
+# Print Label
 @app.route('/print_label/<id>')
 def print_label(id):
     if not session.get('admin'):
@@ -319,14 +329,13 @@ def print_label(id):
         return "Parcel not found", 404
     return render_template('print_label.html', parcel=parcel, date=datetime.datetime.now().strftime("%Y-%m-%d"))
 
+# Logout
 @app.route('/logout')
 def logout():
     session.pop('admin', None)
     return redirect('/')
 
-from flask import jsonify
-import re
-
+# Helper function for Chatbot API
 @app.route('/api/chat', methods=['POST'])
 def chat_api():
     data = request.get_json()
@@ -335,7 +344,7 @@ def chat_api():
     if not message:
         return jsonify({'reply': "I didn't catch that. Could you say it again?"})
 
-    # Regex for Tracking ID (TRK + digits)
+    # Look for tracking ID in message
     tracking_match = re.search(r'(TRK\d+)', message, re.IGNORECASE)
     
     if tracking_match:
@@ -354,7 +363,7 @@ def chat_api():
         else:
             return jsonify({'reply': f"❌ I couldn't find any parcel with ID **{tracking_id}**. Please check and try again."})
 
-    # General AI Responses
+    # Standard responses
     msg_lower = message.lower()
     
     if 'track' in msg_lower or 'status' in msg_lower:
@@ -377,7 +386,5 @@ def chat_api():
 
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 3000))
     app.run(host="0.0.0.0", port=port)
-

@@ -1,3 +1,4 @@
+<!-- Shipping Label Template Developed by Me -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -63,11 +64,13 @@
 </head>
 
 <body>
+    <!-- Label Header -->
     <div class="header">
         <div class="logo">TrackSwift 📦</div>
         <div>Standard Delivery</div>
     </div>
 
+    <!-- Receiver & Sender Info -->
     <div class="row">
         <div class="box">
             <strong>FROM:</strong><br>
@@ -82,6 +85,7 @@
         </div>
     </div>
 
+    <!-- Parcel Details -->
     <div class="row">
         <div class="box">
             <strong>DETAILS:</strong><br>
@@ -103,6 +107,7 @@
     </div>
     {% endif %}
 
+    <!-- Barcode Section -->
     <div class="barcode">
         <h1>{{ parcel.id }}</h1>
         <p>* SCAN FOR DETAILS *</p>

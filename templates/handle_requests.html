@@ -1,20 +1,57 @@
+<!-- Request Management Page Developed by Me -->
 {% extends 'base.html' %}
 {% block content %}
+<h2>Pending Parcel Approvals</h2>
+{% set pending_found = false %}
+{% for parcel in parcels %}
+{% if parcel.status == 'Pending Approval' %}
+{% set pending_found = true %}
+<div class="result glass-panel-light">
+    <!-- Request Header -->
+    <div class="parcel-request-header">
+        <h4>📦 Parcel ID: {{ parcel.id }}</h4>
+        <span class="timestamp">{{ parcel.tracking_history[0].timestamp if parcel.tracking_history else 'Just Now'
+            }}</span>
+    </div>
+    <!-- Request Details -->
+    <div class="parcel-request-details">
+        <p><strong>Sender:</strong> {{ parcel.name }}</p>
+        <p><strong>From:</strong> {{ parcel.start_address }} ➡ <strong>To:</strong> {{ parcel.address }}</p>
+        <p><strong>Phone:</strong> {{ parcel.phone }} | <strong>Email:</strong> {{ parcel.email }}</p>
+        {% if parcel.image %}
+        <p><a href="{{ url_for('static', filename=parcel.image) }}" target="_blank">📸 View Image</a></p>
+        {% endif %}
+    </div>
+    <!-- Actions -->
+    <div class="action-buttons">
+        <a href="/approve_parcel/{{ parcel.id }}" class="animated-button primary-btn">Approve</a>
+        <a href="/reject_parcel/{{ parcel.id }}" class="animated-button danger-btn">Reject</a>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+
+{% if not pending_found %}
+<p>No new parcel requests.</p>
+{% endif %}
+
+<hr class="divider">
+
 <h2>Pending Change Requests</h2>
 {% if requests %}
-    {% for req in requests %}
-    <div class="result">
-        <p><strong>Parcel ID:</strong> {{ req.id }}</p>
-        {% if req.new_address %}<p><strong>New Address:</strong> {{ req.new_address }}</p>{% endif %}
-        {% if req.new_phone %}<p><strong>New Phone:</strong> {{ req.new_phone }}</p>{% endif %}
-        {% if req.new_region %}<p><strong>New Region:</strong> {{ req.new_region }}</p>{% endif %}
-        <form method="POST">
-            <input type="hidden" name="id" value="{{ req.id }}">
-            <button type="submit" name="action" value="approve" class="animated-button">Approve</button>
-            <button type="submit" name="action" value="reject" class="animated-button">Reject</button>
-        </form>
-    </div>
-    {% endfor %}
+{% for req in requests %}
+<div class="result">
+    <p><strong>Parcel ID:</strong> {{ req.id }}</p>
+    {% if req.new_address %}<p><strong>New Address:</strong> {{ req.new_address }}</p>{% endif %}
+    {% if req.new_phone %}<p><strong>New Phone:</strong> {{ req.new_phone }}</p>{% endif %}
+    {% if req.new_region %}<p><strong>New Region:</strong> {{ req.new_region }}</p>{% endif %}
+    <form method="POST">
+        <input type="hidden" name="id" value="{{ req.id }}">
+        <button type="submit" name="action" value="approve" class="animated-button">Approve</button>
+        <button type="submit" name="action" value="reject" class="animated-button">Reject</button>
+    </form>
+</div>
+{% endfor %}
 {% else %}
 <p>No pending requests.</p>
 {% endif %}

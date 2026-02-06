@@ -1,3 +1,4 @@
+<!-- Create Parcel Page Developed by Me -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -6,6 +7,7 @@
     <p>Fill in the details below to schedule a pickup.</p>
 
     {% if success %}
+    <!-- Success Confirmation -->
     <div class="success-message">
         <h3>Parcel Registered Successfully!</h3>
         <p>Your Tracking ID is: <strong>{{ tracking_id }}</strong></p>
@@ -13,6 +15,7 @@
         <a href="/" class="animated-button">Back to Home</a>
     </div>
     {% else %}
+    <!-- Shipping Form -->
     <form action="/create_parcel" method="POST" enctype="multipart/form-data" class="parcel-form">
         <div class="form-group">
             <label>Sender Name</label>
@@ -31,12 +34,12 @@
 
         <div class="form-group">
             <label>Pickup Address (From)</label>
-            <input type="text" name="start_address" required placeholder="Sadbazarpeth, Junnar, Maharashtra">
+            <input type="text" name="start_address" required placeholder="Start Location">
         </div>
 
         <div class="form-group">
             <label>Delivery Address (To)</label>
-            <input type="text" name="address" required placeholder="456 End Rd, City">
+            <input type="text" name="address" required placeholder="End Location">
         </div>
 
         <div class="form-group">

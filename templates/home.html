@@ -1,6 +1,8 @@
+<!-- Home Page Developed by Me -->
 {% extends 'base.html' %}
 
 {% block content %}
+<!-- Hero Section -->
 <div class="hero-section">
     <div class="hero-content zoom-in">
         <h1>Detailed Tracking & <br><span class="highlight">Secure Delivery</span></h1>
@@ -16,6 +18,7 @@
     </div>
 </div>
 
+<!-- Features Section -->
 <div class="features-grid">
     <div class="feature-card glass-panel fade-in-delay-1">
         <div class="icon">📍</div>
@@ -34,6 +37,7 @@
     </div>
 </div>
 
+<!-- Feedback Form -->
 <div class="feedback-section glass-panel slide-up">
     <h3>💬 We Value Your Feedback</h3>
     <form action="/feedback" method="POST" class="feedback-form">
@@ -43,7 +47,7 @@
     </form>
 </div>
 
-<!-- AI Help Chatbot Bubble -->
+<!-- Support Chat Widget -->
 <div class="ai-chat-widget">
     <div class="chat-bubble" onclick="toggleChat()">
         🤖 Need Help?
@@ -60,7 +64,7 @@
         <div class="chat-body" id="chatBody">
             <div class="msg bot">👋 Hi! I can help you track a parcel or schedule a pickup.</div>
 
-            <!-- Suggested Chips -->
+            <!-- Quick Actions -->
             <div class="chips-container">
                 <button class="chip" onclick="useChip('Track Parcel')">📦 Track Parcel</button>
                 <button class="chip" onclick="useChip('Send Package')">🚀 Send Package</button>
@@ -76,7 +80,7 @@
 </div>
 
 <style>
-    /* Chat Widget Styling Enhancements */
+    /* Chat Widget Styles */
     .chat-window {
         display: flex;
         flex-direction: column;
@@ -198,12 +202,12 @@
 
         var body = document.getElementById('chatBody');
 
-        // Add User Message
+        // Append User Message
         body.innerHTML += '<div class="msg user">' + text + '</div>';
         input.value = '';
         body.scrollTop = body.scrollHeight;
 
-        // Show typing indicator (optional) or just wait
+        // Send to API
         fetch('/api/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -220,7 +224,8 @@
             });
     }
 </script>
-<!-- Branding Widget (Home Page Only) -->
+
+<!-- Developer Attribution Widget -->
 <div class="branding-widget" id="brandingWidget">
     <div class="branding-content">
         <span class="close-brand" onclick="hideBrandPermanent()" title="Close">×</span>
@@ -234,7 +239,7 @@
 </div>
 
 <script>
-    // Auto Hide after 10 seconds
+    // Visibility Timer
     setTimeout(function () {
         var widget = document.getElementById('brandingWidget');
         if (widget) widget.style.display = 'none';
@@ -244,10 +249,6 @@
         var widget = document.getElementById('brandingWidget');
         if (widget) {
             widget.style.display = 'none';
-            // Optional: Set localStorage if we really want it permanent across sessions?
-            // User said: "if user close it it should not come again" -> usually per session or per view.
-            // But also said "come on home page for 10 sec".
-            // Implementation: Simple hide.
         }
     }
 </script>

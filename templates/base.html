@@ -1,13 +1,16 @@
+<!-- Base Template Developed by Me -->
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <title>TrackSwift</title>
+  <!-- Load Main Stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 10000) | random }}">
 </head>
 
 <body>
+  <!-- Navigation Bar -->
   <div class="navbar">
     <a href="/" style="text-decoration: none;">
       <h1>📦 TrackSwift</h1>
@@ -20,7 +23,10 @@
     <a href="/login">Admin Login</a>
     {% endif %}
   </div>
+
+  <!-- Main Content Container -->
   <div class="container">
+    <!-- Flash Messages Section -->
     {% with messages = get_flashed_messages() %}
     {% if messages %}
     <ul class="flashes">
@@ -30,12 +36,12 @@
     </ul>
     {% endif %}
     {% endwith %}
+
+    <!-- Page Content Injection -->
     {% block content %}{% endblock %}
 
-    <!-- Floating Back Button -->
+    <!-- Navigation Controls -->
     <button onclick="history.back()" class="floating-back-btn" title="Go Back">⬅️</button>
-
-    <!-- Branding Widget Removed (Moved to Home Page) -->
   </div>
 </body>
 

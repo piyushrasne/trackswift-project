@@ -1,7 +1,9 @@
+<!-- Parcel Tracking Page Developed by Me -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="tracking-container">
     <h2 class="animated-heading">📦 Track Your Parcel</h2>
+    <!-- Tracking Form -->
     <form method="POST" action="/track" class="search-bar animated-form">
         <input type="text" name="tracking_id" placeholder="Enter Tracking ID or Parcel Name" required>
         <button type="submit" class="search-btn">🔍 Track</button>
@@ -9,15 +11,14 @@
 
     {% if parcel %}
     <div class="parcel-dashboard">
-        <!-- Parcel Details Section -->
+        <!-- Parcel Information -->
         <h3 style="margin-bottom: 15px; color: var(--primary);">Parcel Details</h3>
 
         <div class="status-card glass-panel swing-in">
-            <!-- Parcel Details Section -->
             <div
                 style="display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
 
-                <!-- Tracking ID (Most Important) -->
+                <!-- Tracking ID Display -->
                 <div>
                     <p
                         style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -27,7 +28,7 @@
                         {{ parcel.id }}</div>
                 </div>
 
-                <!-- Receiver Name -->
+                <!-- Receiver Information -->
                 <div>
                     <p
                         style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -36,7 +37,7 @@
                         parcel.name else 'Not Available' }}</h2>
                 </div>
 
-                <!-- Contact Information -->
+                <!-- Contact Details -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div>
                         <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3;">📞 Phone</p>
@@ -48,7 +49,7 @@
                     </div>
                 </div>
 
-                <!-- Status Badge -->
+                <!-- Current Status -->
                 <div>
                     <span class="status-badge {{ parcel.status|lower|replace(' ', '-') }}">{{ parcel.status }}</span>
                 </div>
@@ -56,7 +57,7 @@
 
 
             <div class="parcel-visuals">
-                <!-- Image Hidden for Privacy as per Request -->
+                <!-- Secure Image Display -->
                 <div class="parcel-placeholder secure-mode">
                     <span>🔒 Verified Parcel</span>
                     <small>(Image visible to Admin only)</small>
@@ -66,11 +67,9 @@
                     <p>🔒 <strong>Secure Handling:</strong> Verified by TrackSwift AI Security.</p>
                 </div>
             </div>
-
-            <!-- Route Info Removed as per request -->
         </div>
 
-        <!-- Timeline Section -->
+        <!-- Journey Timeline -->
         <div class="timeline-card glass-panel slide-up">
             <h3>📍 Journey History</h3>
             <ul class="timeline-vertical">
@@ -105,7 +104,7 @@
             </ul>
         </div>
 
-        <!-- Change Request Section -->
+        <!-- User Options -->
         <div class="actions-card glass-panel fade-in">
             <h3>⚙️ Options</h3>
             <form method="POST" action="/request_change" class="change-form">
@@ -119,6 +118,7 @@
         </div>
     </div>
     {% elif not_found %}
+    <!-- Error Message -->
     <div class="error-panel glass-panel shake">
         <p>❌ No parcel found with that ID. Please check and try again.</p>
     </div>

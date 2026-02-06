@@ -1,3 +1,4 @@
+<!-- Dashboard Developed by Me -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="glass-panel">
@@ -9,7 +10,7 @@
         </a>
     </div>
 
-    <!-- Add Parcel Section -->
+    <!-- New Parcel Entry Form -->
     <div class="accordion-section">
         <h3 class="accordion-toggle">➕ Add New Parcel</h3>
         <div class="accordion-content">
@@ -42,14 +43,7 @@
         </div>
     </div>
 
-    <!-- Incoming Requests Section -->
-    <div class="incoming-requests">
-        <h3>📩 Incoming Parcel Requests</h3>
-        <div class="requests-grid">
-            <!-- Incoming Requests moved to dedicated page -->
-        </div>
-    </div>
-
+    <!-- Active Shipments List -->
     <div class="filters glass-panel-light">
         <input type="text" id="searchInput" placeholder="Search Parcel by ID or Name..." onkeyup="filterTable()">
         <select id="statusFilter" onchange="filterTable()">
