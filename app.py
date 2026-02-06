@@ -4,7 +4,11 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'trackswift_secret'
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+
+# Ensure upload directory exists
+if not os.path.exists(app.config['UPLOAD_FOLDER']):
+    os.makedirs(app.config['UPLOAD_FOLDER'])
 
 # Paths to JSON data files
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,11 +68,27 @@ def feedback():
 @app.route('/track', methods=['GET', 'POST'])
 def track():
     if request.method == 'POST':
-        tracking_id = request.form['tracking_id']
+        query = request.form['tracking_id'].strip().lower()
         parcels = load_parcels()
+        
+        found_parcel = None
+        
+        # Priority 1: Exact ID Match (Case Insensitive)
         for parcel in parcels:
-            if parcel['id'] == tracking_id:
-                return render_template('track.html', parcel=parcel)
+            if parcel['id'].lower() == query:
+                found_parcel = parcel
+                break
+        
+        # Priority 2: Partial Name Match (Case Insensitive)
+        if not found_parcel:
+            for parcel in parcels:
+                if query in parcel['name'].lower():
+                    found_parcel = parcel
+                    break
+        
+        if found_parcel:
+             return render_template('track.html', parcel=found_parcel)
+             
         return render_template('track.html', not_found=True)
     return render_template('track.html')
 
@@ -229,12 +249,30 @@ def edit_parcel(id):
         parcel['end_address'] = request.form['end_address']
         
         # Add new tracking update if provided
-        new_update = request.form.get('new_update_status')
-        if new_update:
+        new_status_header = request.form.get('new_status_header')
+        if new_status_header:
+            new_desc = request.form.get('new_description', '')
+            new_date = request.form.get('new_date') # Format: YYYY-MM-DD
+            new_time = request.form.get('new_time') # Format: HH:MM
+            
+            # Format timestamp nicely: "Fri, 30th Jan '26 - 6:28pm"
+            # For simplicity, we'll try to parse and reformat, or fallback to input
+            formatted_ts = f"{new_date} {new_time}"
+            try:
+                dt_obj = datetime.datetime.strptime(f"{new_date} {new_time}", "%Y-%m-%d %H:%M")
+                 # Custom formatting
+                day = dt_obj.day
+                suffix = "th" if 11 <= day <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(day % 10, "th")
+                formatted_ts = dt_obj.strftime(f"%a, {day}{suffix} %b '%y - %I:%M%p").lower()
+            except:
+                pass
+
             parcel['tracking_history'].append({
-                'status': new_update,
-                'location': parcel['current_location'],
-                'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                'status': new_status_header,
+                'subtext': request.form.get('new_subtext', ''),
+                'description': new_desc,
+                'location': request.form.get('new_location', parcel['current_location']),
+                'timestamp': formatted_ts
             })
             
         save_parcels(parcels)
@@ -269,7 +307,7 @@ def handle_requests():
             requests = [r for r in requests if r['id'] != parcel_id]
         save_change_requests(requests)
         return redirect('/handle_requests')
-    return render_template('handle_requests.html', requests=requests)
+    return render_template('handle_requests.html', requests=requests, parcels=parcels)
 
 @app.route('/print_label/<id>')
 def print_label(id):
@@ -285,6 +323,58 @@ def print_label(id):
 def logout():
     session.pop('admin', None)
     return redirect('/')
+
+from flask import jsonify
+import re
+
+@app.route('/api/chat', methods=['POST'])
+def chat_api():
+    data = request.get_json()
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'reply': "I didn't catch that. Could you say it again?"})
+
+    # Regex for Tracking ID (TRK + digits)
+    tracking_match = re.search(r'(TRK\d+)', message, re.IGNORECASE)
+    
+    if tracking_match:
+        tracking_id = tracking_match.group(1).upper()
+        parcels = load_parcels()
+        parcel = next((p for p in parcels if p['id'] == tracking_id), None)
+        
+        if parcel:
+            history = parcel.get('tracking_history', [])
+            latest_status = history[-1]['status'] if history else parcel['status']
+            latest_loc = history[-1]['location'] if history else parcel['current_location']
+            
+            return jsonify({
+                'reply': f"📦 **Parcel {tracking_id} Found!**<br>Status: **{latest_status}**<br>Location: {latest_loc}<br><a href='/track' class='chat-link'>View Details</a>"
+            })
+        else:
+            return jsonify({'reply': f"❌ I couldn't find any parcel with ID **{tracking_id}**. Please check and try again."})
+
+    # General AI Responses
+    msg_lower = message.lower()
+    
+    if 'track' in msg_lower or 'status' in msg_lower:
+        return jsonify({'reply': "To track a parcel, please enter your **Tracking ID** (e.g., TRK12345)."})
+        
+    elif 'send' in msg_lower or 'ship' in msg_lower or 'create' in msg_lower:
+        return jsonify({'reply': "🚀 You can send a parcel easily! <a href='/create_parcel' class='chat-link'>Click here to Ship Now</a>."})
+        
+    elif 'price' in msg_lower or 'cost' in msg_lower or 'rate' in msg_lower:
+        return jsonify({'reply': "💰 Shipping rates depend on weight and distance. You can calculate it on the <a href='/create_parcel' class='chat-link'>Send Parcel</a> page."})
+        
+    elif 'contact' in msg_lower or 'call' in msg_lower or 'support' in msg_lower:
+        return jsonify({'reply': "📞 You can contact support at **+91 96572 65104** or <a href='https://wa.me/919657265104' target='_blank' class='chat-link'>Chat on WhatsApp</a>."})
+
+    elif 'hi' in msg_lower or 'hello' in msg_lower or 'hey' in msg_lower:
+        return jsonify({'reply': "👋 Hi there! I'm your TrackSwift Assistant. How can I help you today?"})
+
+    else:
+        return jsonify({'reply': "🤔 I'm not sure about that. Try asking about **tracking**, **shipping**, or **contacting support**."})
+
 
 if __name__ == "__main__":
     import os

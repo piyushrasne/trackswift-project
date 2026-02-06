@@ -50,48 +50,204 @@
     </div>
     <div class="chat-window" id="chatWindow" style="display: none;">
         <div class="chat-header">
-            TrackSwift AI
+            <div>
+                <strong>TrackSwift AI</strong>
+                <span style="font-size: 0.8em; display: block; opacity: 0.8;">Online Support</span>
+            </div>
             <span class="close-chat" onclick="toggleChat()">×</span>
         </div>
+
         <div class="chat-body" id="chatBody">
-            <div class="msg bot">Hi! I can help you track a parcel or schedule a pickup. What do you need?</div>
+            <div class="msg bot">👋 Hi! I can help you track a parcel or schedule a pickup.</div>
+
+            <!-- Suggested Chips -->
+            <div class="chips-container">
+                <button class="chip" onclick="useChip('Track Parcel')">📦 Track Parcel</button>
+                <button class="chip" onclick="useChip('Send Package')">🚀 Send Package</button>
+                <button class="chip" onclick="useChip('Contact Support')">📞 Contact Support</button>
+            </div>
         </div>
+
         <div class="chat-input">
-            <input type="text" id="userMsg" placeholder="Type here..." onkeypress="handleChat(event)">
+            <input type="text" id="userMsg" placeholder="Type a message..." onkeypress="handleChat(event)">
+            <button onclick="sendMsg()" class="send-btn">➤</button>
         </div>
     </div>
 </div>
+
+<style>
+    /* Chat Widget Styling Enhancements */
+    .chat-window {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-body {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .msg {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        max-width: 80%;
+        line-height: 1.4;
+        font-size: 0.9em;
+        word-wrap: break-word;
+    }
+
+    .msg.bot {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-bottom-left-radius: 2px;
+        align-self: flex-start;
+    }
+
+    .msg.user {
+        background: var(--primary-color, #ff6b6b);
+        color: white;
+        border-bottom-right-radius: 2px;
+        align-self: flex-end;
+        margin-left: auto;
+        width: fit-content;
+    }
+
+    .chat-link {
+        color: #4facfe;
+        text-decoration: underline;
+    }
+
+    .chips-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    .chip {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #eee;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8em;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .chip:hover {
+        background: var(--primary-color, #ff6b6b);
+        border-color: var(--primary-color, #ff6b6b);
+        color: white;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 5px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-input input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 8px;
+        outline: none;
+    }
+
+    .send-btn {
+        background: none;
+        border: none;
+        color: var(--primary-color, #ff6b6b);
+        font-size: 1.2em;
+        cursor: pointer;
+        padding: 0 10px;
+    }
+</style>
 
 <script>
     function toggleChat() {
         var chat = document.getElementById('chatWindow');
         chat.style.display = chat.style.display === 'none' ? 'flex' : 'none';
+        if (chat.style.display === 'flex') {
+            document.getElementById('userMsg').focus();
+        }
+    }
+
+    function useChip(text) {
+        var input = document.getElementById('userMsg');
+        input.value = text;
+        sendMsg();
     }
 
     function handleChat(e) {
         if (e.key === 'Enter') {
-            var input = document.getElementById('userMsg');
-            var text = input.value;
-            if (!text) return;
+            sendMsg();
+        }
+    }
 
-            var body = document.getElementById('chatBody');
-            body.innerHTML += '<div class="msg user">' + text + '</div>';
-            input.value = '';
+    function sendMsg() {
+        var input = document.getElementById('userMsg');
+        var text = input.value.trim();
+        if (!text) return;
 
-            // Auto Scroll
-            body.scrollTop = body.scrollHeight;
+        var body = document.getElementById('chatBody');
 
-            // Simple Bot Logic
-            setTimeout(() => {
-                var reply = "I can verify that for you. Please use the 'Track Live' button above!";
-                if (text.toLowerCase().includes('send') || text.toLowerCase().includes('ship')) {
-                    reply = "To send a parcel, click 'Send Parcel' on the home page and fill the form.";
-                } else if (text.toLowerCase().includes('contact') || text.toLowerCase().includes('call')) {
-                    reply = "You can reach us at +91 96572 65104.";
-                }
-                body.innerHTML += '<div class="msg bot">' + reply + '</div>';
+        // Add User Message
+        body.innerHTML += '<div class="msg user">' + text + '</div>';
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+
+        // Show typing indicator (optional) or just wait
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        })
+            .then(response => response.json())
+            .then(data => {
+                body.innerHTML += '<div class="msg bot">' + data.reply + '</div>';
                 body.scrollTop = body.scrollHeight;
-            }, 800);
+            })
+            .catch(err => {
+                console.error(err);
+                body.innerHTML += '<div class="msg bot">❌ Connection error. Please try again.</div>';
+            });
+    }
+</script>
+<!-- Branding Widget (Home Page Only) -->
+<div class="branding-widget" id="brandingWidget">
+    <div class="branding-content">
+        <span class="close-brand" onclick="hideBrandPermanent()" title="Close">×</span>
+        <p>Created by <span class="brand-name">Piyush Rasne</span></p>
+        <div class="brand-links">
+            <a href="https://wa.me/919657265104?text=I%20have%20issue%20add%20help%20detail" target="_blank"
+                class="brand-icon whatsapp">WhatsApp</a>
+            <a href="https://piyushrasne.great-site.net" target="_blank" class="brand-icon portfolio">🌐 Portfolio</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto Hide after 10 seconds
+    setTimeout(function () {
+        var widget = document.getElementById('brandingWidget');
+        if (widget) widget.style.display = 'none';
+    }, 10000);
+
+    function hideBrandPermanent() {
+        var widget = document.getElementById('brandingWidget');
+        if (widget) {
+            widget.style.display = 'none';
+            // Optional: Set localStorage if we really want it permanent across sessions?
+            // User said: "if user close it it should not come again" -> usually per session or per view.
+            // But also said "come on home page for 10 sec".
+            // Implementation: Simple hide.
         }
     }
 </script>

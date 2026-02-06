@@ -39,6 +39,7 @@ body {
     font-size: 1.5rem;
     background: linear-gradient(to right, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -228,6 +229,15 @@ textarea:focus {
 .status-badge.pending-pickup {
     background: #f1c40f;
     color: black;
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--card-border);
 }
 
 .route-info {
@@ -514,6 +524,7 @@ textarea:focus {
     color: var(--primary);
     background: linear-gradient(to right, #00ff88, #00d4ff);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -539,8 +550,8 @@ textarea:focus {
     transform: translateY(-2px);
 }
 
-.brand-icon.insta:hover {
-    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+.brand-icon.whatsapp:hover {
+    background: #25D366;
     color: white;
 }
 
@@ -654,4 +665,151 @@ textarea:focus {
 .close-brand:hover {
     transform: scale(1.1);
     background: #ff3333;
+}
+
+/* Floating Back Button */
+.floating-back-btn {
+    position: fixed;
+    top: 90px;
+    left: 20px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #000;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+    z-index: 999;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.floating-back-btn:hover {
+    transform: translateY(-3px) scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 255, 136, 0.6);
+}
+
+/* Success Message */
+.success-message {
+    text-align: center;
+    background: rgba(46, 204, 113, 0.2);
+    border: 1px solid #2ecc71;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+    animation: fadeIn 0.8s ease forwards;
+}
+
+.success-message h3 {
+    color: #2ecc71;
+    margin-bottom: 1rem;
+}
+
+.success-message strong {
+    font-size: 1.2rem;
+    color: white;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-family: monospace;
+}
+
+/* Vertical Timeline */
+.timeline-vertical {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline-v-item {
+    display: flex;
+    gap: 15px;
+    position: relative;
+    padding-bottom: 25px;
+}
+
+.timeline-v-item:last-child {
+    padding-bottom: 0;
+}
+
+.v-line {
+    position: absolute;
+    left: 7px;
+    top: 20px;
+    bottom: -5px;
+    width: 2px;
+    background: #2ecc71;
+}
+
+.timeline-v-item:last-child .v-line {
+    display: none;
+}
+
+.v-dot {
+    width: 16px;
+    height: 16px;
+    background: #2ecc71;
+    border-radius: 50%;
+    z-index: 1;
+    margin-top: 5px;
+    border: 3px solid rgba(46, 204, 113, 0.3);
+}
+
+.v-content {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.v-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.v-status {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.v-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.v-desc {
+    margin: 2px 0 5px;
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.v-sub {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 2px 0 8px;
+}
+
+.v-loc {
+    font-size: 0.85rem;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.map-link {
+    color: var(--secondary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.map-link:hover {
+    text-decoration: underline;
 }

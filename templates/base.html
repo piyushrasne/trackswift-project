@@ -4,12 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <title>TrackSwift</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 10000) | random }}">
 </head>
 
 <body>
   <div class="navbar">
-    <h1>📦 TrackSwift</h1>
+    <a href="/" style="text-decoration: none;">
+      <h1>📦 TrackSwift</h1>
+    </a>
     {% if session.get('admin') %}
     <a href="/dashboard">Dashboard</a>
     <a href="/logout">Logout</a>
@@ -33,28 +35,7 @@
     <!-- Floating Back Button -->
     <button onclick="history.back()" class="floating-back-btn" title="Go Back">⬅️</button>
 
-    <!-- Branding Widget -->
-    <div class="branding-widget" id="brandingWidget">
-      <div class="branding-content">
-        <span class="close-brand" onclick="hideBrand()" title="Hide for 10s">×</span>
-        <p>Created by <span class="brand-name">Piyush Rasne</span></p>
-        <div class="brand-links">
-          <a href="https://www.instagram.com/_piyush_rasne_?igsh=MWZwMjAwajByOXU2aw==" target="_blank"
-            class="brand-icon insta">📸 Instagram</a>
-          <a href="https://piyushrasne.great-site.net" target="_blank" class="brand-icon portfolio">🌐 Portfolio</a>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      function hideBrand() {
-        var widget = document.getElementById('brandingWidget');
-        widget.style.display = 'none';
-        setTimeout(function () {
-          widget.style.display = 'block';
-        }, 10000); // 10 seconds
-      }
-    </script>
+    <!-- Branding Widget Removed (Moved to Home Page) -->
   </div>
 </body>
 

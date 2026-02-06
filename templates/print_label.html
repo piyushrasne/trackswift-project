@@ -96,6 +96,13 @@
         </div>
     </div>
 
+    {% if parcel.image %}
+    <div style="text-align: center; margin: 10px 0;">
+        <p><strong>Parcel Image:</strong></p>
+        <img src="{{ url_for('static', filename=parcel.image) }}" style="max-height: 150px; border: 1px solid #ccc;">
+    </div>
+    {% endif %}
+
     <div class="barcode">
         <h1>{{ parcel.id }}</h1>
         <p>* SCAN FOR DETAILS *</p>
