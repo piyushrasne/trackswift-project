@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="glass-panel slide-up">
+    <h2 class="animated-heading">🤖 AI Support Center</h2>
+    <p>Need help? Our AI assistant and support team are here for you.</p>
+
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 30px;">
+        <!-- Contact Info -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+            <h3>📞 Contact Us</h3>
+            <p><strong>Phone:</strong> +91 96572 65104</p>
+            <p><strong>Email:</strong> support@trackswift.com</p>
+            <p><strong>Address:</strong> Tech Hub, Pune, India</p>
+
+            <a href="https://wa.me/919657265104" target="_blank" class="cta-btn primary"
+                style="display: inline-block; margin-top: 20px;">Chat on WhatsApp</a>
+        </div>
+
+        <!-- AI Chat Section -->
+        <div class="glass-panel" style="flex: 1; min-width: 300px;">
+            <h3>💬 Chat with AI</h3>
+            <p>Ask about your parcel status, shipping rates, or just say hi!</p>
+
+            <div class="chat-window"
+                style="height: 300px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; display: flex;">
+                <!-- Reusing the chat logic from home page, but inline here -->
+                <div class="chat-body" id="pageChatBody">
+                    <div class="msg bot">👋 Hello! How can I assist you today?</div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="pageUserMsg" placeholder="Type a message..."
+                        onkeypress="handlePageChat(event)">
+                    <button onclick="sendPageMsg()" class="send-btn">➤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; text-align: center;">
+        <a href="/" class="cta-btn secondary">Back to Home</a>
+    </div>
+</div>
+
+<style>
+    /* Reusing styles from home.html essentially */
+    .chat-body {
+        flex: 1;
+        padding: 10px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .msg {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 12px;
+        max-width: 80%;
+        line-height: 1.4;
+        font-size: 0.9em;
+        word-wrap: break-word;
+    }
+
+    .msg.bot {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border-bottom-left-radius: 2px;
+        align-self: flex-start;
+    }
+
+    .msg.user {
+        background: var(--primary-color, #ff6b6b);
+        color: white;
+        border-bottom-right-radius: 2px;
+        align-self: flex-end;
+        margin-left: auto;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 5px;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-input input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        padding: 8px;
+        outline: none;
+    }
+
+    .send-btn {
+        background: none;
+        border: none;
+        color: var(--primary-color, #ff6b6b);
+        font-size: 1.2em;
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    function handlePageChat(e) {
+        if (e.key === 'Enter') {
+            sendPageMsg();
+        }
+    }
+
+    function sendPageMsg() {
+        var input = document.getElementById('pageUserMsg');
+        var text = input.value.trim();
+        if (!text) return;
+
+        var body = document.getElementById('pageChatBody');
+
+        // Append User Message
+        body.innerHTML += '<div class="msg user">' + text + '</div>';
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+
+        // Send to API
+        fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+        })
+            .then(response => response.json())
+            .then(data => {
+                body.innerHTML += '<div class="msg bot">' + data.reply + '</div>';
+                body.scrollTop = body.scrollHeight;
+            })
+            .catch(err => {
+                console.error(err);
+                body.innerHTML += '<div class="msg bot">❌ Connection error. Please try again.</div>';
+            });
+    }
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-<!-- Create Parcel Page Developed by Me -->
+<!-- Create Parcel Page  -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -11,6 +11,7 @@
     <div class="success-message">
         <h3>Parcel Registered Successfully!</h3>
         <p>Your Tracking ID is: <strong>{{ tracking_id }}</strong></p>
+        <p>Receiver: <strong>{{ receiver_name }}</strong></p>
         <p>Please save this ID to track your parcel.</p>
         <a href="/" class="animated-button">Back to Home</a>
     </div>
@@ -19,7 +20,12 @@
     <form action="/create_parcel" method="POST" enctype="multipart/form-data" class="parcel-form">
         <div class="form-group">
             <label>Sender Name</label>
-            <input type="text" name="sender_name" required placeholder="Piyush Rasne">
+            <input type="text" name="sender_name" required placeholder="Sender Name">
+        </div>
+
+        <div class="form-group">
+            <label>Receiver Name</label>
+            <input type="text" name="receiver_name" required placeholder="Receiver Name">
         </div>
 
         <div class="form-group">
@@ -39,7 +45,7 @@
 
         <div class="form-group">
             <label>Delivery Address (To)</label>
-            <input type="text" name="address" required placeholder="End Location">
+            <input type="text" name="end_address" required placeholder="End Location">
         </div>
 
         <div class="form-group">
@@ -48,6 +54,19 @@
                 <option value="Domestic">Domestic</option>
                 <option value="International">International</option>
             </select>
+        </div>
+
+        <div class="form-group">
+            <label>Payment Type</label>
+            <select name="payment_type" required>
+                <option value="Prepaid">Prepaid</option>
+                <option value="Postpaid">Postpaid</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Price (Optional)</label>
+            <input type="text" name="price" placeholder="Enter Price (if applicable)">
         </div>
 
         <div class="form-group">

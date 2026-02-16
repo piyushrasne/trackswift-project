@@ -1,4 +1,4 @@
-<!-- Home Page Developed by Me -->
+<!-- Home Page  -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -20,21 +20,21 @@
 
 <!-- Features Section -->
 <div class="features-grid">
-    <div class="feature-card glass-panel fade-in-delay-1">
+    <a href="/track" class="feature-card glass-panel fade-in-delay-1" style="text-decoration: none; color: inherit;">
         <div class="icon">📍</div>
         <h3>Live Location</h3>
         <p>See exactly where your parcel is in real-time.</p>
-    </div>
-    <div class="feature-card glass-panel fade-in-delay-2">
+    </a>
+    <a href="/security" class="feature-card glass-panel fade-in-delay-2" style="text-decoration: none; color: inherit;">
         <div class="icon">🔒</div>
         <h3>Top Security</h3>
         <p>Verified handling with photo proof at every step.</p>
-    </div>
-    <div class="feature-card glass-panel fade-in-delay-3">
+    </a>
+    <a href="/support" class="feature-card glass-panel fade-in-delay-3" style="text-decoration: none; color: inherit;">
         <div class="icon">🤖</div>
         <h3>AI Support</h3>
         <p>Get instant answers on how to track or ship.</p>
-    </div>
+    </a>
 </div>
 
 <!-- Feedback Form -->
@@ -46,6 +46,19 @@
         <button type="submit" class="cta-btn">Submit Feedback</button>
     </form>
 </div>
+
+<!-- Footer Section -->
+<footer
+    style="margin-top: 50px; padding: 20px; text-align: center; color: rgba(255,255,255,0.6); border-top: 1px solid rgba(255,255,255,0.1);">
+    <p>&copy; 2026 TrackSwift. All Rights Reserved.</p>
+    <p>Created by <strong>Piyush Rasne</strong></p>
+    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 20px;">
+        <a href="/support" style="color: var(--primary-color, #ff6b6b); text-decoration: none;">Support Center</a>
+        <a href="/security" style="color: var(--primary-color, #ff6b6b); text-decoration: none;">Security Policy</a>
+        <a href="https://piyushrasne.great-site.net" target="_blank"
+            style="color: var(--primary-color, #ff6b6b); text-decoration: none;">Developer Portfolio</a>
+    </div>
+</footer>
 
 <!-- Support Chat Widget -->
 <div class="ai-chat-widget">
@@ -66,9 +79,11 @@
 
             <!-- Quick Actions -->
             <div class="chips-container">
-                <button class="chip" onclick="useChip('Track Parcel')">📦 Track Parcel</button>
-                <button class="chip" onclick="useChip('Send Package')">🚀 Send Package</button>
-                <button class="chip" onclick="useChip('Contact Support')">📞 Contact Support</button>
+                <button class="chip" onclick="useChip('Track a Parcel')">📦 Track Parcel</button>
+                <button class="chip" onclick="useChip('Send a Package')">🚀 Send Package</button>
+                <button class="chip" onclick="useChip('Check Shipping Rates')">💰 Check Rates</button>
+                <button class="chip" onclick="useChip('Talk to Support')">📞 Contact Support</button>
+                <button class="chip" onclick="useChip('Is it Secure?')">🔒 Security</button>
             </div>
         </div>
 
@@ -225,31 +240,15 @@
     }
 </script>
 
-<!-- Developer Attribution Widget -->
-<div class="branding-widget" id="brandingWidget">
-    <div class="branding-content">
-        <span class="close-brand" onclick="hideBrandPermanent()" title="Close">×</span>
-        <p>Created by <span class="brand-name">Piyush Rasne</span></p>
-        <div class="brand-links">
-            <a href="https://wa.me/919657265104?text=I%20have%20issue%20add%20help%20detail" target="_blank"
-                class="brand-icon whatsapp">WhatsApp</a>
-            <a href="https://piyushrasne.great-site.net" target="_blank" class="brand-icon portfolio">🌐 Portfolio</a>
-        </div>
-    </div>
-</div>
-
+<!-- Developer Attribution Widget (Permanent Hidden for Clean Look after Footer addition) -->
+<style>
+    .branding-widget {
+        display: none !important;
+    }
+</style>
 <script>
-    // Visibility Timer
-    setTimeout(function () {
-        var widget = document.getElementById('brandingWidget');
-        if (widget) widget.style.display = 'none';
-    }, 10000);
-
     function hideBrandPermanent() {
-        var widget = document.getElementById('brandingWidget');
-        if (widget) {
-            widget.style.display = 'none';
-        }
+        // Did nothing
     }
 </script>
 {% endblock %}

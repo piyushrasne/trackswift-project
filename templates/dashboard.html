@@ -1,11 +1,11 @@
-<!-- Dashboard Developed by Me -->
+<!-- Dashboard  -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="glass-panel">
     <div class="dashboard-header">
         <h2 class="animated-heading">Admin Dashboard</h2>
         <a href="/handle_requests" class="notification-badge animated-button" title="View Requests">
-            🔔 <span class="label">Requests</span> {% if requests_count > 0 %}<span class="count">{{ requests_count
+            Requests {% if requests_count > 0 %}<span class="count">{{ requests_count
                 }}</span>{% endif %}
         </a>
     </div>
@@ -17,7 +17,7 @@
             <form method="POST" action="/add_parcel" enctype="multipart/form-data" class="grid-form">
                 <input type="text" name="id" placeholder="Parcel ID (Auto if empty)" value="">
                 <input type="text" name="sender_name" placeholder="Sender Name" required>
-                <input type="text" name="name" placeholder="Receiver Name" required>
+                <input type="text" name="receiver_name" placeholder="Receiver Name" required>
                 <select name="status" required>
                     <option value="Pending Pickup">Pending Pickup</option>
                     <option value="In Transit">In Transit</option>
@@ -61,19 +61,15 @@
                 <tr>
                     <th>ID</th>
                     <th>Image</th>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Current Loc</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Region</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for parcel in parcels %}
                 {% if parcel.status != 'Pending Approval' %}
-                <tr>
+                <tr data-status="{{ parcel.status }}">
                     <td>{{ parcel.id }}</td>
                     <td>
                         {% if parcel.image %}
@@ -83,21 +79,19 @@
                         <span>-</span>
                         {% endif %}
                     </td>
-                    <td>{{ parcel.name }}</td>
-                    <td><span class="status-pill {{ parcel.status|lower|replace(' ','-') }}">{{ parcel.status }}</span>
-                    </td>
-                    <td>{{ parcel.current_location }}</td>
-                    <td>{{ parcel.start_address }}</td>
-                    <td>{{ parcel.address }}</td>
-                    <td>{{ parcel.region }}</td>
+                    <td>{{ parcel.sender_name }}</td>
+                    <td>{{ parcel.receiver_name }}</td>
                     <td>
-                        <a href="/edit_parcel/{{ parcel.id }}" class="action-btn edit" title="Edit">✏️</a>
+                        <!-- View More Button triggers Modal -->
+                        <button onclick='openModal({{ parcel|tojson }})' class="action-btn view">View More</button>
+
+                        <a href="/edit_parcel/{{ parcel.id }}" class="action-btn edit" title="Edit">Edit</a>
                         <a href="/print_label/{{ parcel.id }}" class="action-btn print" target="_blank"
-                            title="Print Label">🖨️</a>
+                            title="Print Label">Print</a>
                         <form method="POST" action="/delete_parcel" style="display:inline;"
                             onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="id" value="{{ parcel.id }}">
-                            <button type="submit" class="action-btn delete" title="Delete">🗑️</button>
+                            <button type="submit" class="action-btn delete" title="Delete">Delete</button>
                         </form>
                     </td>
                 </tr>
@@ -108,34 +102,136 @@
     </div>
 </div>
 
+<!-- View More Modal -->
+<div id="viewMoreModal" class="modal">
+    <div class="modal-content glass-panel">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h2>📦 Parcel Details</h2>
+        <div id="modalBody">
+            <!-- Content filled by JS -->
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background-color: #1a1a1a;
+        margin: 10% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 10px;
+        color: white;
+    }
+
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-detail-row {
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 5px;
+    }
+
+    .modal-label {
+        font-weight: bold;
+        color: var(--primary-color, #ff6b6b);
+    }
+</style>
+
 <script>
-    function filterTable() {
-        var searchInput = document.getElementById("searchInput").value.toUpperCase();
-        var statusFilter = document.getElementById("statusFilter").value.toUpperCase();
+    function openModal(parcel) {
+        var modal = document.getElementById("viewMoreModal");
+        var body = document.getElementById("modalBody");
 
-        var table = document.getElementById("parcelTable");
-        var tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        var html = `
+            <div class="modal-detail-row"><span class="modal-label">ID:</span> ${parcel.id}</div>
+            <div class="modal-detail-row"><span class="modal-label">Status:</span> ${parcel.status}</div>
+            <div class="modal-detail-row"><span class="modal-label">Start Address:</span> ${parcel.start_address}</div>
+            <div class="modal-detail-row"><span class="modal-label">End Address:</span> ${parcel.end_address}</div>
+            <div class="modal-detail-row"><span class="modal-label">Current Location:</span> ${parcel.current_location}</div>
+            <div class="modal-detail-row"><span class="modal-label">Phone:</span> ${parcel.phone}</div>
+            <div class="modal-detail-row"><span class="modal-label">Email:</span> ${parcel.email}</div>
+            <div class="modal-detail-row"><span class="modal-label">Price:</span> ${parcel.price}</div>
+            <div class="modal-detail-row"><span class="modal-label">Payment:</span> ${parcel.payment_type}</div>
+            <div class="modal-detail-row"><span class="modal-label">Region:</span> ${parcel.region}</div>
+        `;
 
-        for (var i = 0; i < tr.length; i++) {
-            var tdId = tr[i].getElementsByTagName("td")[0];
-            var tdName = tr[i].getElementsByTagName("td")[1];
-            var tdStatus = tr[i].getElementsByTagName("td")[2];
+        body.innerHTML = html;
+        modal.style.display = "block";
+    }
 
-            if (tdId && tdName) {
-                var txtValueId = tdId.textContent || tdId.innerText;
-                var txtValueName = tdName.textContent || tdName.innerText;
-                var txtValueStatus = tdStatus.textContent || tdStatus.innerText;
+    function closeModal() {
+        document.getElementById("viewMoreModal").style.display = "none";
+    }
 
-                var matchesSearch = txtValueId.toUpperCase().indexOf(searchInput) > -1 || txtValueName.toUpperCase().indexOf(searchInput) > -1;
-                var matchesStatus = statusFilter === "" || txtValueStatus.toUpperCase().indexOf(statusFilter) > -1;
+    // Close on click outside
+    window.onclick = function (event) {
+        var modal = document.getElementById("viewMoreModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
 
-                if (matchesSearch && matchesStatus) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
+        < script >
+        function filterTable() {
+            var searchInput = document.getElementById("searchInput").value.toUpperCase();
+            var statusFilter = document.getElementById("statusFilter").value.toUpperCase();
+
+            var table = document.getElementById("parcelTable");
+            var tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+            for (var i = 0; i < tr.length; i++) {
+                var tdId = tr[i].getElementsByTagName("td")[0];
+                var tdSender = tr[i].getElementsByTagName("td")[2];
+                var tdReceiver = tr[i].getElementsByTagName("td")[3];
+                var status = tr[i].getAttribute('data-status').toUpperCase();
+
+                if (tdId) {
+                    var txtId = tdId.textContent || tdId.innerText;
+                    var txtSender = tdSender.textContent || tdSender.innerText;
+                    var txtReceiver = tdReceiver.textContent || tdReceiver.innerText;
+
+                    var matchesSearch = txtId.toUpperCase().indexOf(searchInput) > -1 ||
+                        txtSender.toUpperCase().indexOf(searchInput) > -1 ||
+                        txtReceiver.toUpperCase().indexOf(searchInput) > -1;
+
+                    var matchesStatus = statusFilter === "" || status.indexOf(statusFilter) > -1;
+
+                    if (matchesSearch && matchesStatus) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
                 }
             }
         }
-    }
 </script>
 {% endblock %}

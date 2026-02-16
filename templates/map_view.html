@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="glass-panel slide-up">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 class="animated-heading">🗺️ Parcel Journey: {{ parcel.id }}</h2>
+        <a href="/track?tracking_id={{ parcel.id }}" class="cta-btn secondary"
+            style="padding: 5px 15px; font-size: 0.9em;">Back to Details</a>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map" style="height: 600px; width: 100%; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2);">
+    </div>
+
+    <div style="margin-top: 20px; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+        <div class="glass-panel" style="padding: 10px 20px; text-align: center; min-width: 150px;">
+            <p style="color: #b3b3b3; font-size: 0.8em; margin-bottom: 5px;">START</p>
+            <strong style="color: white;">{{ parcel.start_address }}</strong>
+        </div>
+        <div class="glass-panel" style="padding: 10px 20px; text-align: center; min-width: 150px;">
+            <p style="color: #4facfe; font-size: 0.8em; margin-bottom: 5px;">CURRENT</p>
+            <strong style="color: white;">{{ parcel.current_location }}</strong>
+        </div>
+        <div class="glass-panel" style="padding: 10px 20px; text-align: center; min-width: 150px;">
+            <p style="color: #ff6b6b; font-size: 0.8em; margin-bottom: 5px;">DESTINATION</p>
+            <strong style="color: white;">{{ parcel.end_address }}</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet Map CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var startAddr = "{{ parcel.start_address }}";
+        var endAddr = "{{ parcel.end_address }}";
+        var currentAddr = "{{ parcel.current_location }}";
+
+        var locations = [];
+
+        // Custom Icons
+        var startIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        var currentIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        var endIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        // Function to geocode and add marker
+        async function geocodeAndMark(address, title, icon) {
+            if (!address) return;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lon = parseFloat(data[0].lon);
+
+                    var marker = L.marker([lat, lon], { icon: icon }).addTo(map)
+                        .bindPopup(`<b>${title}</b><br>${address}`);
+
+                    if (title === 'Current Location') {
+                        marker.openPopup();
+                    }
+
+                    locations.push([lat, lon]);
+                    return [lat, lon];
+                }
+            } catch (e) {
+                console.error("Geocoding error", e);
+            }
+        }
+
+        // Execute Geocoding
+        (async () => {
+            await geocodeAndMark(startAddr, 'Start Location', startIcon);
+
+            // Only show current if it isn't same as start
+            if (currentAddr && currentAddr !== startAddr) {
+                await geocodeAndMark(currentAddr, 'Current Location', currentIcon);
+            } else if (!currentAddr) {
+                // If no current, maybe use start as current? 
+            }
+
+            await geocodeAndMark(endAddr, 'Destination', endIcon);
+
+            if (locations.length > 0) {
+                var group = new L.featureGroup(locations.map(loc => L.marker(loc)));
+                map.fitBounds(group.getBounds().pad(0.2));
+
+                if (locations.length > 1) {
+                    L.polyline(locations, {
+                        color: '#4facfe',
+                        weight: 4,
+                        opacity: 0.7,
+                        dashArray: '10, 10',
+                        lineCap: 'round'
+                    }).addTo(map);
+                }
+            }
+        })();
+    });
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-<!-- Parcel Tracking Page Developed by Me -->
+<!-- Parcel Tracking Page  -->
 {% extends 'base.html' %}
 {% block content %}
 <div class="tracking-container">
@@ -10,118 +10,131 @@
     </form>
 
     {% if parcel %}
-    <div class="parcel-dashboard">
-        <!-- Parcel Information -->
-        <h3 style="margin-bottom: 15px; color: var(--primary);">Parcel Details</h3>
 
-        <div class="status-card glass-panel swing-in">
-            <div
-                style="display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
 
-                <!-- Tracking ID Display -->
+    <!-- Parcel Information -->
+    <h3 style="margin-bottom: 15px; color: var(--primary);">Parcel Details</h3>
+
+    <div class="status-card glass-panel swing-in">
+        <div
+            style="display: flex; flex-direction: column; gap: 15px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px;">
+
+            <!-- Tracking ID Display -->
+            <div>
+                <p
+                    style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Tracking ID</p>
+                <div
+                    style="color: var(--primary); font-weight: bold; font-family: monospace; font-size: 1.3rem; text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);">
+                    {{ parcel.id }}</div>
+            </div>
+
+            <!-- Sender & Receiver Information -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div>
                     <p
                         style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Tracking ID</p>
-                    <div
-                        style="color: var(--primary); font-weight: bold; font-family: monospace; font-size: 1.3rem; text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);">
-                        {{ parcel.id }}</div>
+                        Sender</p>
+                    <h3 style="margin: 0; color: white;">{{ parcel.sender_name }}</h3>
                 </div>
-
-                <!-- Receiver Information -->
                 <div>
                     <p
                         style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Receiver Name</p>
-                    <h2 style="margin: 0; color: white; font-size: 1.5rem; font-weight: 600;">{{ parcel.name if
-                        parcel.name else 'Not Available' }}</h2>
+                        Receiver</p>
+                    <h3 style="margin: 0; color: white;">{{ parcel.receiver_name }}</h3>
                 </div>
+            </div>
 
-                <!-- Contact Details -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3;">📞 Phone</p>
-                        <div style="color: white; font-size: 0.95rem;">{{ parcel.phone }}</div>
-                    </div>
-                    <div>
-                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3;">✉️ Email</p>
-                        <div style="color: white; font-size: 0.85rem; word-break: break-all;">{{ parcel.email }}</div>
-                    </div>
-                </div>
-
-                <!-- Current Status -->
+            <!-- Contact Details -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div>
-                    <span class="status-badge {{ parcel.status|lower|replace(' ', '-') }}">{{ parcel.status }}</span>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3;">📞 Phone</p>
+                    <div style="color: white; font-size: 0.95rem;">{{ parcel.phone }}</div>
+                </div>
+                <div>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #b3b3b3;">✉️ Email</p>
+                    <div style="color: white; font-size: 0.85rem; word-break: break-all;">{{ parcel.email }}</div>
                 </div>
             </div>
 
-
-            <div class="parcel-visuals">
-                <!-- Secure Image Display -->
-                <div class="parcel-placeholder secure-mode">
-                    <span>🔒 Verified Parcel</span>
-                    <small>(Image visible to Admin only)</small>
-                </div>
-
-                <div class="security-info">
-                    <p>🔒 <strong>Secure Handling:</strong> Verified by TrackSwift AI Security.</p>
-                </div>
+            <!-- Current Status -->
+            <div>
+                <span class="status-badge {{ parcel.status|lower|replace(' ', '-') }}">{{ parcel.status }}</span>
             </div>
         </div>
 
-        <!-- Journey Timeline -->
-        <div class="timeline-card glass-panel slide-up">
-            <h3>📍 Journey History</h3>
-            <ul class="timeline-vertical">
-                {% for event in parcel.tracking_history|reverse %}
-                <li class="timeline-v-item">
-                    <div class="v-line"></div>
-                    <div class="v-dot"></div>
-                    <div class="v-content">
-                        <div class="v-header">
-                            <span class="v-status">{{ event.status }}</span>
-                            <span class="v-time">{{ event.timestamp }}</span>
-                        </div>
-                        {% if event.description %}
-                        <p class="v-desc">{{ event.description }}</p>
-                        {% endif %}
 
-                        <div class="v-loc">
-                            {{ event.location }}
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ event.location }}"
-                                target="_blank" class="map-link">📍 View on Map</a>
-                        </div>
-                    </div>
-                </li>
-                {% else %}
-                <li class="timeline-v-item">
-                    <div class="v-content">
-                        <h4>Tracking Initiated</h4>
-                        <p>Waiting for updates...</p>
-                    </div>
-                </li>
-                {% endfor %}
-            </ul>
+        <div class="parcel-visuals">
+            <!-- Secure Image Display -->
+            <span>🔒 Verified Parcel</span>
+            <small>(Image visible to Admin only)</small>
         </div>
 
-        <!-- User Options -->
-        <div class="actions-card glass-panel fade-in">
-            <h3>⚙️ Options</h3>
-            <form method="POST" action="/request_change" class="change-form">
-                <input type="hidden" name="id" value="{{ parcel.id }}">
-                <div class="input-group">
-                    <input type="text" name="new_address" placeholder="Update Address">
-                    <input type="text" name="new_phone" placeholder="Update Phone">
+        <!-- View on Map Button -->
+        <a href="/view_map/{{ parcel.id }}" class="cta-btn primary"
+            style="width: 100%; text-align: center; margin-top: 15px; display: block; text-decoration: none;">
+            🗺️ View Journey on Map
+        </a>
+
+        <div class="security-info">
+            <p>🔒 <strong>Secure Handling:</strong> Verified by TrackSwift AI Security.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Journey Timeline -->
+<div class="timeline-card glass-panel slide-up">
+    <h3>📍 Journey History</h3>
+    <ul class="timeline-vertical">
+        {% for event in parcel.tracking_history|reverse %}
+        <li class="timeline-v-item">
+            <div class="v-line"></div>
+            <div class="v-dot"></div>
+            <div class="v-content">
+                <div class="v-header">
+                    <span class="v-status">{{ event.status }}</span>
+                    <span class="v-time">{{ event.timestamp }}</span>
                 </div>
-                <button type="submit" class="action-btn">Request Changes</button>
-            </form>
+                {% if event.description %}
+                <p class="v-desc">{{ event.description }}</p>
+                {% endif %}
+
+                <div class="v-loc">
+                    {{ event.location }}
+                </div>
+            </div>
+        </li>
+        {% else %}
+        <li class="timeline-v-item">
+            <div class="v-content">
+                <h4>Tracking Initiated</h4>
+                <p>Waiting for updates...</p>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+
+
+<!-- User Options -->
+<div class="actions-card glass-panel fade-in">
+    <h3>⚙️ Options</h3>
+    <form method="POST" action="/request_change" class="change-form">
+        <input type="hidden" name="id" value="{{ parcel.id }}">
+        <div class="input-group">
+            <input type="text" name="new_address" placeholder="Update Address">
+            <input type="text" name="new_phone" placeholder="Update Phone">
         </div>
-    </div>
-    {% elif not_found %}
-    <!-- Error Message -->
-    <div class="error-panel glass-panel shake">
-        <p>❌ No parcel found with that ID. Please check and try again.</p>
-    </div>
-    {% endif %}
+        <button type="submit" class="action-btn">Request Changes</button>
+    </form>
+</div>
+</div>
+{% elif not_found %}
+<!-- Error Message -->
+<div class="error-panel glass-panel shake">
+    <p>❌ No parcel found with that ID. Please check and try again.</p>
+</div>
+{% endif %}
 </div>
 {% endblock %}

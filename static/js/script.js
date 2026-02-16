@@ -1,4 +1,4 @@
-// Script Developed by Me
+// Script
 // Handle Dark Mode Toggle
 document.getElementById("darkSwitch")?.addEventListener("change", function () {
     document.body.classList.toggle("dark-mode");

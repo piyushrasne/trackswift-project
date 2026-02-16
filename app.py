@@ -34,6 +34,11 @@ def load_parcels():
             if 'end_address' not in p: p['end_address'] = p.get('address', '')
             if 'tracking_history' not in p: p['tracking_history'] = []
             if 'current_location' not in p: p['current_location'] = p.get('address', '')
+            # Migration for names
+            if 'sender_name' not in p: p['sender_name'] = 'Unknown Sender'
+            if 'receiver_name' not in p: p['receiver_name'] = p.get('name', 'Unknown Receiver')
+            # Ensure name is receiver_name for backward compatibility if needed, or just use receiver_name
+            p['name'] = p['receiver_name'] 
         return data
 
 # Helper function to save parcel data
@@ -71,6 +76,25 @@ def feedback():
     flash('Thank you for your feedback!')
     return redirect('/')
 
+# Security Page
+@app.route('/security')
+def security():
+    return render_template('security.html')
+
+# Support Page
+@app.route('/support')
+def support():
+    return render_template('support.html')
+
+# View Map Page
+@app.route('/view_map/<id>')
+def view_map(id):
+    parcels = load_parcels()
+    parcel = next((p for p in parcels if p['id'] == id), None)
+    if not parcel:
+        return "Parcel not found", 404
+    return render_template('map_view.html', parcel=parcel)
+
 # Tracking Page
 @app.route('/track', methods=['GET', 'POST'])
 def track():
@@ -86,10 +110,10 @@ def track():
                 found_parcel = parcel
                 break
         
-        # Search by Name if not found
+        # Search by Receiver Name or Sender Name if not found
         if not found_parcel:
             for parcel in parcels:
-                if query in parcel['name'].lower():
+                if query in parcel['receiver_name'].lower() or query in parcel['sender_name'].lower():
                     found_parcel = parcel
                     break
         
@@ -140,7 +164,9 @@ def add_parcel():
         return redirect('/login')
     new_parcel = {
         'id': request.form['id'] or ('TRK' + str(datetime.datetime.now().timestamp()).replace('.', '')[-5:]),
-        'name': request.form['name'],
+        'sender_name': request.form['sender_name'],
+        'receiver_name': request.form['receiver_name'],
+        'name': request.form['receiver_name'], # Keep for compatibility
         'status': request.form['status'],
         'address': request.form['address'],
         'start_address': request.form.get('start_address', ''),
@@ -212,15 +238,17 @@ def create_parcel():
         
         new_parcel = {
             'id': parcel_id,
-            'name': request.form['sender_name'],
+            'sender_name': request.form['sender_name'],
+            'receiver_name': request.form['receiver_name'],
+            'name': request.form['receiver_name'],
             'status': 'Pending Approval',
-            'address': request.form['address'],
+            'address': request.form['end_address'], # Changed form field name to match
             'start_address': request.form['start_address'],
-            'end_address': request.form['address'],
-            'price': 'Calculate...',
+            'end_address': request.form['end_address'],
+            'price': request.form.get('price', 'TBD'),
             'phone': request.form['phone'],
             'email': request.form['email'],
-            'payment_type': 'TBD',
+            'payment_type': request.form.get('payment_type', 'Prepaid'),
             'region': request.form.get('region', 'India'),
             'image': '',
             'tracking_history': [{'status': 'Order Placed', 'location': 'Online', 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}],
@@ -237,7 +265,7 @@ def create_parcel():
         parcels = load_parcels()
         parcels.append(new_parcel)
         save_parcels(parcels)
-        return render_template('create_parcel.html', success=True, tracking_id=parcel_id)
+        return render_template('create_parcel.html', success=True, tracking_id=parcel_id, receiver_name=request.form['receiver_name'])
     return render_template('create_parcel.html')
 
 # Edit Parcel Details
@@ -257,6 +285,9 @@ def edit_parcel(id):
         parcel['current_location'] = request.form['current_location']
         parcel['start_address'] = request.form['start_address']
         parcel['end_address'] = request.form['end_address']
+        parcel['sender_name'] = request.form.get('sender_name', parcel.get('sender_name', ''))
+        parcel['receiver_name'] = request.form.get('receiver_name', parcel.get('receiver_name', ''))
+        parcel['name'] = parcel['receiver_name']  # Sync name
         
         # Add tracking history
         new_status_header = request.form.get('new_status_header')
@@ -358,31 +389,41 @@ def chat_api():
             latest_loc = history[-1]['location'] if history else parcel['current_location']
             
             return jsonify({
-                'reply': f"📦 **Parcel {tracking_id} Found!**<br>Status: **{latest_status}**<br>Location: {latest_loc}<br><a href='/track' class='chat-link'>View Details</a>"
+                'reply': f"📦 **Parcel Found!**<br><strong>ID:</strong> {tracking_id}<br><strong>Status:</strong> {latest_status}<br><strong>Location:</strong> {latest_loc}<br><br><a href='/track?tracking_id={tracking_id}' class='chat-link'>View Full Details</a>"
             })
         else:
-            return jsonify({'reply': f"❌ I couldn't find any parcel with ID **{tracking_id}**. Please check and try again."})
+            return jsonify({'reply': f"❌ I verified our database, but I couldn't find any parcel with ID **{tracking_id}**. Please double-check the ID."})
 
-    # Standard responses
+    # Intelligent Responses
     msg_lower = message.lower()
     
-    if 'track' in msg_lower or 'status' in msg_lower:
-        return jsonify({'reply': "To track a parcel, please enter your **Tracking ID** (e.g., TRK12345)."})
-        
-    elif 'send' in msg_lower or 'ship' in msg_lower or 'create' in msg_lower:
-        return jsonify({'reply': "🚀 You can send a parcel easily! <a href='/create_parcel' class='chat-link'>Click here to Ship Now</a>."})
-        
-    elif 'price' in msg_lower or 'cost' in msg_lower or 'rate' in msg_lower:
-        return jsonify({'reply': "💰 Shipping rates depend on weight and distance. You can calculate it on the <a href='/create_parcel' class='chat-link'>Send Parcel</a> page."})
-        
-    elif 'contact' in msg_lower or 'call' in msg_lower or 'support' in msg_lower:
-        return jsonify({'reply': "📞 You can contact support at **+91 96572 65104** or <a href='https://wa.me/919657265104' target='_blank' class='chat-link'>Chat on WhatsApp</a>."})
+    # Greetings
+    if any(x in msg_lower for x in ['hi', 'hello', 'hey', 'start']):
+        return jsonify({'reply': "👋 Verified TrackSwift AI here! I can help you with:<br>1. 📦 Tracking a Parcel<br>2. 🚚 Scheduling a Pickup<br>3. 💰 Checking Rates<br>4. 📞 Customer Support"})
 
-    elif 'hi' in msg_lower or 'hello' in msg_lower or 'hey' in msg_lower:
-        return jsonify({'reply': "👋 Hi there! I'm your TrackSwift Assistant. How can I help you today?"})
+    # Tracking general
+    elif 'track' in msg_lower or 'where is' in msg_lower or 'status' in msg_lower:
+        return jsonify({'reply': "To track your shipment, simply enter your **Tracking ID** (starting with TRK). or provide me the ID here."})
+        
+    # Sending/Shipping
+    elif 'send' in msg_lower or 'ship' in msg_lower or 'courier' in msg_lower or 'new parcel' in msg_lower:
+        return jsonify({'reply': "🚀 **Ready to ship?**<br>We offer fast and secure delivery.<br><br><a href='/create_parcel' class='chat-link' style='background: #ff6b6b; color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none;'>Book a Parcel Now</a>"})
+        
+    # Pricing/Rates
+    elif 'price' in msg_lower or 'cost' in msg_lower or 'rate' in msg_lower or 'how much' in msg_lower:
+        return jsonify({'reply': "💰 **Best Rates Guaranteed!**<br>Our pricing depends on weight and distance. You can get an instant quote on our <a href='/create_parcel' class='chat-link'>Booking Page</a>."})
+        
+    # Contact/Support
+    elif any(x in msg_lower for x in ['contact', 'human', 'support', 'call', 'talk', 'help']):
+        return jsonify({'reply': "📞 **We are here to help!**<br>You can reach our premium support line at:<br><strong>+91 96572 65104</strong><br><br>Or chat directly on WhatsApp:<br><a href='https://wa.me/919657265104?text=Hi%20TrackSwift%20Support,%20I%20need%20help' target='_blank' class='chat-link' style='color: #25D366; font-weight: bold;'>Click to Chat on WhatsApp 💬</a>"})
 
+    # Security
+    elif 'safe' in msg_lower or 'secure' in msg_lower or 'security' in msg_lower:
+        return jsonify({'reply': "🔒 **Top-Tier Security**<br>Every parcel is photo-verified at pickup and delivery. We use AI monitoring to ensure 100% safety."})
+
+    # Default fallback
     else:
-        return jsonify({'reply': "🤔 I'm not sure about that. Try asking about **tracking**, **shipping**, or **contacting support**."})
+        return jsonify({'reply': "🤖 I'm trained to help with logistics. Try asking about **tracking**, **shipping rates**, or **contacting support**."})
 
 
 if __name__ == "__main__":

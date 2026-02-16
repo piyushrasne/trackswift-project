@@ -1,4 +1,4 @@
-<!-- Base Template Developed by Me -->
+<!-- Base Template  -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,7 +41,9 @@
     {% block content %}{% endblock %}
 
     <!-- Navigation Controls -->
+    {% if request.path != '/' %}
     <button onclick="history.back()" class="floating-back-btn" title="Go Back">⬅️</button>
+    {% endif %}
   </div>
 </body>
 
